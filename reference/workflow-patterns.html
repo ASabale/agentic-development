@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Workflow patterns — reference</title>
+<link rel="stylesheet" href="../assets/lesson.css">
+</head>
+<body>
+
+<p class="kicker">Reference · print this</p>
+<h1>Workflow patterns</h1>
+<p class="subtitle">Anthropic, <a href="https://www.anthropic.com/engineering/building-effective-agents">Building effective agents</a>. All five are workflows: your code owns the topology.</p>
+
+<table>
+<thead>
+<tr><th>Pattern</th><th>What happens</th><th>When</th><th>Watch for</th></tr>
+</thead>
+<tbody>
+<tr>
+  <td>Prompt chaining</td>
+  <td>LLM calls in a fixed sequence; gates between steps.</td>
+  <td>Task cleanly splits into known subtasks.</td>
+  <td>Latency stacks. A bad intermediate poisons the rest if you skip gates.</td>
+</tr>
+<tr>
+  <td>Routing</td>
+  <td>Classify, then send to a specialist prompt or model.</td>
+  <td>Distinct categories; classification is reliable.</td>
+  <td>Misroutes. Optimizing one branch must not wreck others.</td>
+</tr>
+<tr>
+  <td>Parallelization</td>
+  <td><em>Sectioning:</em> independent subtasks at once. <em>Voting:</em> same task, many attempts, aggregate.</td>
+  <td>Speed, or confidence from multiple looks.</td>
+  <td>Cost × N. Voting needs an aggregator you trust.</td>
+</tr>
+<tr>
+  <td>Orchestrator–workers</td>
+  <td>Lead model invents subtasks at runtime, delegates, synthesizes.</td>
+  <td>You cannot pre-list the subtasks (e.g. which files to edit).</td>
+  <td>Looks like multi-agent. Still a workflow: you wrote the shape. Token-heavy.</td>
+</tr>
+<tr>
+  <td>Evaluator–optimizer</td>
+  <td>Generate → critique against criteria → revise, loop.</td>
+  <td>Criteria are clear; feedback actually improves the next draft.</td>
+  <td>Infinite polish. Cap the loop. Weak criteria waste spend.</td>
+</tr>
+</tbody>
+</table>
+
+<div class="def">
+<span class="label">Then the agent</span>
+Drop the fixed graph. The model picks tools in a loop until a goal is met. Use only when the path depends on what you discover. You pay in latency, cost, and failure modes.
+</div>
+
+<p>The building block under all of the above is the <strong>augmented LLM</strong> (retrieval + tools + memory). Climb the ladder only when a lower rung’s eval says you must.</p>
+
+<nav class="lessons-nav">
+<span><a href="../syllabus.html">← Syllabus</a></span>
+<span><a href="../lessons/0003-workflows-vs-agents.html">Lesson 0003 →</a></span>
+</nav>
+</body>
+</html>

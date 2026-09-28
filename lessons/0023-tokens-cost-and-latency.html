@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0023 — Tokens, cost, and latency</title>
+<link rel="stylesheet" href="../assets/lesson.css">
+</head>
+<body>
+
+<p class="kicker">Lesson 0023 · Phase 1 depth · ~12 minutes</p>
+<h1>Tokens, cost, and latency</h1>
+<p class="subtitle">Every extra beat of the loop is a bill and a wait. Agents are 4× chat. Multi-agent is 15×. Know why.</p>
+
+<div class="win">
+<strong>Your one win today</strong>
+Compute a back-of-envelope cost for a 10-step agent turn, and name the three clocks (queue, input processing, generation) so you can talk latency without waving at GPUs.
+</div>
+
+<h2>1 · Two meters, not one</h2>
+
+<p>Providers bill <span class="strong">input tokens</span> (the prefix you send) and <span class="strong">output tokens</span> (what the model emits, including thoughts and tool-call JSON). Output is usually several times more expensive per token than input. Cached input (next lesson) is cheaper still.</p>
+
+<p>Because the harness resends the transcript, a 10-step agent does not cost 10× a one-shot. It costs the triangular number: step 1 sees 1k input, step 2 sees 1k+the last call, … step 10 sees almost the whole trace. Anthropic’s published ratios: agents ≈ 4× chat; multi-agent ≈ 15× chat.<a class="cite" href="https://www.anthropic.com/engineering/multi-agent-research-system">[1]</a> Those are not moral numbers. They are what loops do to a transcript.</p>
+
+<div class="cost">
+  <div class="row"><span>Chat (1 call, 1k in / 200 out)</span><span>1.0×</span></div>
+  <div class="row"><span>Agent, ~8 tool steps, same model</span><span>~4×  (Anthropic)</span></div>
+  <div class="row"><span>Multi-agent research</span><span>~15× (Anthropic)</span></div>
+  <div class="row total"><span>Interview line</span><span>flexibility is a rate card</span></div>
+</div>
+
+<p>Your envelope, every design review: <em>expected steps × (avg input + avg output) × unit price</em>, plus a p95 because retries (Factor 9) and reflections add turns. If you cannot write that product, you do not have a cost model.</p>
+
+<h2>2 · Three clocks</h2>
+
+<table>
+<thead><tr><th>Clock</th><th>What it is</th><th>How agents blow it up</th></tr></thead>
+<tbody>
+<tr><td>Queue / rate limit</td><td>Waiting to even start</td><td>Parallel workers (0015) stampede the same key</td></tr>
+<tr><td>Time-to-first-token (TTFT)</td><td>Processing the prefix before any output</td><td>Grows with uncached input. Caching (0025) is a TTFT feature as much as a cost feature.</td></tr>
+<tr><td>Generation</td><td>Tokens sampled one after another</td><td>Long CoT / “thinking” / huge JSON dumps. Output tokens are slow and pricey.</td></tr>
+</tbody>
+</table>
+
+<p>A workflow of three small calls can beat one “smart” agent on p95 latency even if the agent uses fewer total tokens — sequential beats plus TTFT each time vs one long generation. Measure. Do not argue from architecture diagrams.</p>
+
+<div class="interview">
+<span class="label">Interview angle</span>
+“This agent will be too slow / too expensive.” Strong: show the envelope, the 4×/15× citations, which clock dominates, what you’d cap (steps, output tokens, worker fan-out), and when you’d drop to a workflow. Weak: “we’ll use a smaller model” as the only lever.
+</div>
+
+<h2>3 · Retrieval practice</h2>
+
+<div class="quiz">
+
+<div class="q" data-ans="1">
+<p class="qtext">1. Why is a 10-step agent not “10 × one chat”?</p>
+<label><input type="radio" name="q1"> Vendors secretly multiply agent invoices by a flat 10× flag.</label>
+<label class="ans"><input type="radio" name="q1"> Each step resends a longer prefix; cost is roughly triangular.</label>
+<label><input type="radio" name="q1"> Tool JSON is billed as a separate product with its own meter.</label>
+<div class="feedback ok">Correct. Stateless replay. Cache blunts it; it does not flatten it to 1×.</div>
+<div class="feedback no">No secret flag, no separate tool-meter. Triangular prefixes. Option 2.</div>
+</div>
+
+<div class="q" data-ans="2">
+<p class="qtext">2. Anthropic’s published multiples vs chat?</p>
+<label><input type="radio" name="q2"> Agents 15×; multi-agent 90.2× — the quality delta is the bill.</label>
+<label><input type="radio" name="q2"> Agents are cheaper than chat because of prompt cache.</label>
+<label class="ans"><input type="radio" name="q2"> Agents ~4× chat; multi-agent ~15× chat.</label>
+<div class="feedback ok">Correct. 90.2% was a quality delta on one eval (0015), not a price. Cache helps but was not that claim.</div>
+<div class="feedback no">Do not turn 90.2% into a bill, and do not assume cache makes agents cheap. Option 3.</div>
+</div>
+
+<div class="q" data-ans="0">
+<p class="qtext">3. Long “thinking” traces hit which clock hardest?</p>
+<label class="ans"><input type="radio" name="q3"> Generation — output tokens stream one by one, and they are pricey.</label>
+<label><input type="radio" name="q3"> Only queue time; thoughts are processed entirely in parallel.</label>
+<label><input type="radio" name="q3"> None; thought tokens are always free uncached input.</label>
+<div class="feedback ok">Correct. Thoughts are output (then later input). Generation clock + the output rate card.</div>
+<div class="feedback no">Not free, not fully parallel. Generation. Option 1.</div>
+</div>
+
+<div class="q" data-ans="2">
+<p class="qtext">4. A fair cost model for a design review names…</p>
+<label><input type="radio" name="q4"> Only the monthly seat price of the framework you picked.</label>
+<label><input type="radio" name="q4"> GPU hourly rates at a hyperscaler, ignoring the API bill.</label>
+<label class="ans"><input type="radio" name="q4"> Steps × (input+output) × unit price, plus p95 for retries.</label>
+<div class="feedback ok">Correct. Envelope first. Seats and rented GPUs are a different conversation.</div>
+<div class="feedback no">Seats and colo GPUs are not the agent rate card. Option 3.</div>
+</div>
+
+</div>
+
+<h2>4 · Read next (primary source)</h2>
+
+<p>The cost paragraphs in <a href="https://www.anthropic.com/engineering/multi-agent-research-system">How we built our multi-agent research system</a>. Then the vendor’s current price page for the model you would actually call — numbers move; the envelope does not.</p>
+
+<h2>5 · Lock it in</h2>
+<ul>
+<li>4× / 15×. Triangular prefixes. Three clocks. Recite.</li>
+<li>New glossary terms: <em>input token</em>, <em>output token</em>, <em>TTFT</em>.</li>
+</ul>
+
+<p class="reminder">Want to cost a specific design (N tools, expected steps, a real price row)? Paste it. Arithmetic is the drill.</p>
+
+<nav class="lessons-nav">
+<span><a href="./0022-system-prompts-and-roles.html">← 0022 System prompts</a></span>
+<span><a href="./0024-failure-modes.html">0024 Failure modes →</a></span>
+</nav>
+<script src="../assets/quiz.js"></script>
+</body>
+</html>

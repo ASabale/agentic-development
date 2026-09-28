@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0009 — Memory</title>
+<link rel="stylesheet" href="../assets/lesson.css">
+</head>
+<body>
+
+<p class="kicker">Lesson 0009 · Phase 2: Core patterns · ~12 minutes</p>
+<h1>Memory</h1>
+<p class="subtitle">If it is not in the window, the model does not know it. Everything else is a tool.</p>
+
+<div class="win">
+<strong>Your one win today</strong>
+Draw two boxes — <em>in-context</em> and <em>external</em> — and refuse to call a vector database “memory.” Memory is notes the agent can write and read. Vectors are one retrieval mechanism among several.
+</div>
+
+<h2>1 · Two kinds, one rule</h2>
+
+<p>Weng’s split is still the right one:<a class="cite" href="https://lilianweng.github.io/posts/2023-06-23-agent/">[1]</a></p>
+<div class="split">
+  <div>
+    <h3>Short-term / in-context</h3>
+    <p>The current window: system prompt, this conversation, this trial’s tool calls. Lesson 0004. Finite, expensive, rotting.</p>
+  </div>
+  <div>
+    <h3>Long-term / external</h3>
+    <p>Anything that survives a new call: files, a database, a ticket, a git log. The model sees it only when some tool puts a slice into the window.</p>
+  </div>
+</div>
+
+<p>Willison, on the consensus definition of an agent: the tool-call conversation already <em>is</em> short-term memory. “If you want long-term memory the most promising way to implement it is with an extra set of tools.”<a class="cite" href="https://simonwillison.net/2025/Sep/18/agents/">[2]</a></p>
+
+<div class="def">
+<span class="label">Memory (operational)</span>
+Structured note-taking. The agent writes to persistent storage so it can track progress across tasks and sessions without keeping everything in active context. Reading those notes is a tool call.
+</div>
+
+<p>Anthropic’s memory tool is literally a filesystem under a directory, executed client-side: create, read, update, delete files that persist between sessions.<a class="cite" href="https://platform.claude.com/docs/en/agents-and-tools/tool-use/memory-tool">[3]</a> Claude Code’s “memory” is markdown files the harness re-injects. There is no magic neuron.</p>
+
+<h2>2 · Vectors are retrieval, not memory</h2>
+
+<p>A vector store answers “find chunks like this query.” That is RAG — next lesson. It is a fine backend for <em>one</em> memory tool (<code>search_notes(query)</code>). It is a terrible synonym for memory, because:</p>
+<ul>
+<li>Most of what an agent needs to remember is <em>exact</em>: the ticket id, the branch name, the failing test. Grep beats cosine similarity.</li>
+<li>Embeddings forget structure. A decision log is a sequence, not a bag of nearest neighbors.</li>
+<li>You still have to decide what to write, when to retrieve, and how much to paste into the window. That is context engineering. The database does not do it for you.</li>
+</ul>
+
+<h2>3 · What to actually store</h2>
+
+<table>
+<thead><tr><th>Store</th><th>Good for</th><th>Bring back via</th></tr></thead>
+<tbody>
+<tr><td>The live transcript</td><td>This goal, this trial</td><td>Replay (always)</td></tr>
+<tr><td>Compacted recap</td><td>Older turns of a long trial</td><td>Replace raw history (lossy)</td></tr>
+<tr><td>Files / notes</td><td>Cross-session facts, preferences, progress</td><td><code>read_file</code> / memory tool</td></tr>
+<tr><td>Episode critiques</td><td>Reflexion (lesson 0008)</td><td>Inject 1–3 snippets next trial</td></tr>
+<tr><td>Retrieved chunks</td><td>A knowledge base you do not own as notes</td><td>Search tool — lesson 0010</td></tr>
+</tbody>
+</table>
+
+<p>Write less than you think. Every byte you store will fight for attention when it returns. Prefer pointers (path, id, URL) and fetch just-in-time — Factor 3 again.<a class="cite" href="https://github.com/humanlayer/12-factor-agents/blob/main/content/factor-03-own-your-context-window.md">[4]</a></p>
+
+<div class="interview">
+<span class="label">Interview angle</span>
+“How would you add memory to this agent?” Weak: “Pinecone.” Strong: the conversation is STM; for LTM I’d give it a notes tool and decide, deterministically, what gets written (progress, decisions, user prefs) and what gets retrieved (pointers first). I’d eval whether retrieval helps before I buy a vector database.
+</div>
+
+<h2>4 · Retrieval practice</h2>
+
+<div class="quiz">
+
+<div class="q" data-ans="1">
+<p class="qtext">1. Long-term memory, operationally, is…</p>
+<label><input type="radio" name="q1"> A hidden state tensor the API keeps between HTTP calls.</label>
+<label class="ans"><input type="radio" name="q1"> External notes the agent writes and later reads via tools.</label>
+<label><input type="radio" name="q1"> Any vector database, regardless of what you store in it.</label>
+<div class="feedback ok">Correct. Willison: long-term memory is an extra set of tools. Anthropic: a filesystem of notes.</div>
+<div class="feedback no">Models are stateless (lesson 0004). Vectors are one backend. Notes-plus-tools is the thing. Option 2.</div>
+</div>
+
+<div class="q" data-ans="2">
+<p class="qtext">2. Why is “we added memory (Pinecone)” a sloppy sentence?</p>
+<label><input type="radio" name="q2"> Pinecone cannot store text, only image embeddings.</label>
+<label><input type="radio" name="q2"> Vector search is illegal in production agent systems.</label>
+<label class="ans"><input type="radio" name="q2"> A vector DB is retrieval; memory is what you write and when you fetch.</label>
+<div class="feedback ok">Correct. You can remember with files and grep. You can retrieve without remembering. Name the verb.</div>
+<div class="feedback no">The sloppiness is confusing a retrieval backend with the memory policy. Option 3.</div>
+</div>
+
+<div class="q" data-ans="0">
+<p class="qtext">3. Best default for a ticket id the agent must not scramble?</p>
+<label class="ans"><input type="radio" name="q3"> Write it to a note (or keep it in state) and read it exactly.</label>
+<label><input type="radio" name="q3"> Embed it; retrieve the nearest neighbor at the next turn.</label>
+<label><input type="radio" name="q3"> Rely on the model to recite it from pretraining weights.</label>
+<div class="feedback ok">Correct. Exact facts want exact storage. Cosine similarity is how ids get mangled.</div>
+<div class="feedback no">Nearest-neighbor and pretraining are how you lose the id. Option 1.</div>
+</div>
+
+<div class="q" data-ans="2">
+<p class="qtext">4. The live tool-call transcript is which kind of memory?</p>
+<label><input type="radio" name="q4"> Long-term, because traces are often written to a log file.</label>
+<label><input type="radio" name="q4"> Neither; transcripts are logs for humans, not for the model.</label>
+<label class="ans"><input type="radio" name="q4"> Short-term: it is the window the next call will replay.</label>
+<div class="feedback ok">Correct. Willison: tools-in-a-loop already has STM baked in. Logs on disk are LTM only if a tool reads them back.</div>
+<div class="feedback no">A log file the model never sees is not memory. The replayed window is STM. Option 3.</div>
+</div>
+
+</div>
+
+<h2>5 · Read next (primary source)</h2>
+
+<p>Weng, <a href="https://lilianweng.github.io/posts/2023-06-23-agent/">LLM Powered Autonomous Agents</a> — Component Two: Memory. Then Willison’s paragraph on memory-as-tools in <a href="https://simonwillison.net/2025/Sep/18/agents/">the definition post</a>. Optional: Anthropic <a href="https://platform.claude.com/docs/en/agents-and-tools/tool-use/memory-tool">Memory tool</a>.</p>
+
+<h2>6 · Lock it in</h2>
+<ul>
+<li>Two boxes: in-context / external. One rule: unseen = unknown.</li>
+<li>New glossary terms: <em>short-term memory</em>, <em>long-term memory</em>, <em>memory tool</em>.</li>
+</ul>
+
+<p class="reminder">If a vendor deck said “our agent has memory” and you now suspect they mean a vector DB, ask. We can decode the slide.</p>
+
+<nav class="lessons-nav">
+<span><a href="./0008-planning-and-reflection.html">← 0008 Planning</a></span>
+<span><a href="./0010-rag-for-agents.html">0010 RAG for agents →</a></span>
+</nav>
+<script src="../assets/quiz.js"></script>
+</body>
+</html>

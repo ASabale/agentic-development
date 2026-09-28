@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0019 — Read a real ship</title>
+<link rel="stylesheet" href="../assets/lesson.css">
+</head>
+<body>
+
+<p class="kicker">Lesson 0019 · Phase 5: Career · ~15 minutes</p>
+<h1>Read a real ship</h1>
+<p class="subtitle">Decode someone else’s agent with the vocabulary you now have. This is how you talk in interviews about systems you did not write.</p>
+
+<div class="win">
+<strong>Your one win today</strong>
+Apply a seven-question reading protocol to Anthropic’s Research system (you already have the post from 0015) so that “I read a production write-up” becomes a specific, cited story, not a vibe.
+</div>
+
+<h2>1 · Why read ships</h2>
+
+<p>Portfolio work you build yourself will be small at first. Interviewers also want to hear you navigate a system at production scale. The honest way, without pretending you work at Anthropic: read the engineering post like a code review, with this course’s terms as the lint rules.</p>
+
+<p>Wisdom, later, comes from communities — r/LocalLLaMA, AI Engineer talks — where people argue about ships in public. This lesson is the reading skill those rooms assume.<a class="cite" href="../RESOURCES.md">[1]</a></p>
+
+<h2>2 · The seven questions</h2>
+
+<ol class="steps">
+<li><strong>Agent or workflow?</strong> Who picks the next step? Research: lead is an agent; workers are agents; the topology (spawn parallel, synthesize) is a workflow the lead sits in. Mixed. Say so.</li>
+<li><strong>What is the harness?</strong> What runs tools, persists, stops? If the post is silent, that silence is data — you would ask in a design review.</li>
+<li><strong>What is the ACI?</strong> Which tools, how described, what is forbidden? Research: search tools; subagent-spawn is itself a tool. Compression is the job of the worker’s final message.</li>
+<li><strong>Where is memory?</strong> Isolated windows per subagent (0015). Lead never sees raw dumps — it sees compressed returns. That is context isolation, not a vector DB.</li>
+<li><strong>How do they know it works?</strong> Internal research eval, +90.2% vs single-agent, BrowseComp variance (tokens 80%). They eval. Quote the numbers.</li>
+<li><strong>What does it cost?</strong> 4× / 15×. They published it. Most posts will not. Demand it anyway.</li>
+<li><strong>When would you not copy this?</strong> Colliding writes; enumerable paths; no baseline. You already have this answer (0015). Saying it is the senior move.</li>
+</ol>
+
+<h2>3 · Two more ships, when you have time</h2>
+
+<table>
+<thead><tr><th>Ship</th><th>Why it is worth a Sunday</th></tr></thead>
+<tbody>
+<tr><td><a href="https://github.com/humanlayer/12-factor-agents">12-factor itself</a></td><td>The “mostly software” claim. Use it to review any repo you open later.</td></tr>
+<tr><td><a href="https://simonwillison.net/guides/agentic-engineering-patterns/how-coding-agents-work/">Willison, How coding agents work</a></td><td>A coding harness stripped to tokens, cache, tools, system prompt. Maps 1:1 onto 0002–0004.</td></tr>
+<tr><td><a href="https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents">Long-running harnesses</a></td><td>You read it in 0017. Re-read as a design review: list the artifacts, list the failure modes they admitted.</td></tr>
+</tbody>
+</table>
+
+<p>When you later pick an open-source agent (OpenHands, a Claude-code clone, whatever is current), run the same seven questions and write a learning record. That write-up is interview ammunition.</p>
+
+<div class="interview">
+<span class="label">Interview angle</span>
+“Tell me about a production agent architecture you admire.” Do not say “AutoGPT.” Say: Anthropic Research, orchestrator–worker, isolated windows as compression, 90.2% / 80% tokens / 15× cost, I would not copy it onto our billing writes because of colliding state. That paragraph is this lesson.
+</div>
+
+<h2>4 · Retrieval practice</h2>
+
+<div class="quiz">
+
+<div class="q" data-ans="2">
+<p class="qtext">1. Anthropic Research is “mixed” because…</p>
+<label><input type="radio" name="q1"> It uses both Python and TypeScript in one process.</label>
+<label><input type="radio" name="q1"> The lead is a workflow; workers are fine-tunes, not models.</label>
+<label class="ans"><input type="radio" name="q1"> Workers are agents; the spawn-and-synthesize shape is a workflow.</label>
+<div class="feedback ok">Correct. Topology is yours (orchestrator–workers). Nodes are tools-in-a-loop. Mixed is the precise word.</div>
+<div class="feedback no">Not languages, not fine-tunes. Agent nodes in a workflow shape. Option 3.</div>
+</div>
+
+<div class="q" data-ans="0">
+<p class="qtext">2. The memory trick in that system is…</p>
+<label class="ans"><input type="radio" name="q2"> Isolated windows plus compressed returns to the lead.</label>
+<label><input type="radio" name="q2"> A global vector store every worker writes to each turn.</label>
+<label><input type="radio" name="q2"> Keeping every search hit in the lead's prompt forever.</label>
+<div class="feedback ok">Correct. Compression is the point of subagents. A global store or an ever-growing lead window is the thing they avoided.</div>
+<div class="feedback no">They isolated on purpose. Don't undo it with a shared bag of chunks. Option 1.</div>
+</div>
+
+<div class="q" data-ans="1">
+<p class="qtext">3. A senior closer after praising the architecture?</p>
+<label><input type="radio" name="q3"> “I would roll this out on every surface, including refunds.”</label>
+<label class="ans"><input type="radio" name="q3"> “I would not copy it onto colliding writes without a new eval.”</label>
+<label><input type="radio" name="q3"> “The 90.2% means it is always cheaper than a single agent.”</label>
+<div class="feedback ok">Correct. Admiration plus a no. That is design judgment, which is the skill.</div>
+<div class="feedback no">90.2% is quality, not price (15×). Refunds are colliding, irreversible state. Option 2.</div>
+</div>
+
+<div class="q" data-ans="2">
+<p class="qtext">4. You have not worked at Anthropic. How do you still use this post?</p>
+<label><input type="radio" name="q4"> Claim you implemented it; they will not check.</label>
+<label><input type="radio" name="q4"> Avoid citing it, because only employees may discuss it.</label>
+<label class="ans"><input type="radio" name="q4"> Cite it as a reviewed architecture, with numbers and a caveat.</label>
+<div class="feedback ok">Correct. Honest scope: I read the engineering post; here is what I took; here is what I would not copy. That is professional.</div>
+<div class="feedback no">Do not lie, and the post is public. Cite and caveat. Option 3.</div>
+</div>
+
+</div>
+
+<h2>5 · Read next (primary source)</h2>
+
+<p>Re-read <a href="https://www.anthropic.com/engineering/multi-agent-research-system">How we built our multi-agent research system</a> with the seven questions on paper. Write answers in a notebook. Then come to chat and defend them.</p>
+
+<h2>6 · Lock it in</h2>
+<ul>
+<li>Seven questions. One paragraph story. Optional: a learning record after you finish the re-read.</li>
+</ul>
+
+<p class="reminder">When you pick a second ship, tell me which. We will run the protocol again rather than wandering the repo.</p>
+
+<nav class="lessons-nav">
+<span><a href="./0018-design-interview.html">← 0018 Interview drill</a></span>
+<span><a href="./0020-capstone-brief.html">0020 Capstone brief →</a></span>
+</nav>
+<script src="../assets/quiz.js"></script>
+</body>
+</html>

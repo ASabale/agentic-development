@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Failure modes — reference</title>
+<link rel="stylesheet" href="../assets/lesson.css">
+</head>
+<body>
+
+<p class="kicker">Reference · print this</p>
+<h1>Failure modes</h1>
+<p class="subtitle">Name the mode, name the lever. From <a href="../lessons/0024-failure-modes.html">lesson 0024</a>.</p>
+
+<h2>Weng’s three (2023, still true)</h2>
+<table>
+<thead><tr><th>Limit</th><th>Lever</th></tr></thead>
+<tbody>
+<tr><td>Finite context</td><td>Small agents, compaction, pointers (0004, Factor 10)</td></tr>
+<tr><td>Weak long-horizon planning</td><td>Decompose; don’t ask one loop to run the quarter (0008)</td></tr>
+<tr><td>Flaky natural-language interface</td><td>Schemas, parsers, still (0011)</td></tr>
+</tbody>
+</table>
+
+<h2>Production catalog</h2>
+<table>
+<thead><tr><th>Mode</th><th>Lever type</th><th>First move</th></tr></thead>
+<tbody>
+<tr><td>Hallucinated fact</td><td>Context</td><td>Ground with a tool / RAG; grade citations</td></tr>
+<tr><td>Wrong tool / args</td><td>ACI</td><td>Fewer tools, poka-yoke, compact error, retry cap</td></tr>
+<tr><td>Loop / spin</td><td>Control flow</td><td>Step cap, consecutive-error cap, escalate</td></tr>
+<tr><td>Early victory</td><td>Control flow</td><td>Verify-before-exit in the harness (0017)</td></tr>
+<tr><td>Goal hijack / IPI</td><td>ACI + HITL</td><td>Untrusted observations; least privilege; pause on writes (0027)</td></tr>
+<tr><td>Silent side effect</td><td>Observability</td><td>Pair by id; traces; interrupt before invoke</td></tr>
+<tr><td>Grader bug</td><td>Eval</td><td>Read the transcript before rewriting the agent</td></tr>
+</tbody>
+</table>
+
+<nav class="lessons-nav">
+<span><a href="../syllabus.html">← Syllabus</a></span>
+<span><a href="../lessons/0024-failure-modes.html">Lesson 0024 →</a></span>
+</nav>
+</body>
+</html>

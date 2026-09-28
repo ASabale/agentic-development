@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Twelve-factor agents — reference</title>
+<link rel="stylesheet" href="../assets/lesson.css">
+</head>
+<body>
+
+<p class="kicker">Reference · print this</p>
+<h1>Twelve-factor agents</h1>
+<p class="subtitle">Dex Horthy / HumanLayer. Opinionated production checklist, not a spec. <a href="https://github.com/humanlayer/12-factor-agents">Source</a>.</p>
+
+<div class="def">
+<span class="label">Compression</span>
+Own the <strong>tokens</strong> (1–4), the <strong>lifetime</strong> (5–8), and the <strong>failure</strong> (9–12).
+</div>
+
+<table>
+<thead><tr><th>#</th><th>Factor</th><th>One line</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>Natural language → tool calls</td><td>A sentence becomes structured intent; your code takes it from there.</td></tr>
+<tr><td>2</td><td>Own your prompts</td><td>The string is source code. If a framework hides it, you cannot debug.</td></tr>
+<tr><td>3</td><td>Own your context window</td><td>“Here’s what happened; what’s the next step?” Pack it yourself.</td></tr>
+<tr><td>4</td><td>Tools are structured outputs</td><td>JSON in. Your switch decides whether — and how — to honor it.</td></tr>
+<tr><td>5</td><td>Unify execution and business state</td><td>One event log. Do not let the transcript and the ticket drift.</td></tr>
+<tr><td>6</td><td>Launch / pause / resume</td><td>Serialize the thread. Wake on a webhook. Do not sleep in workers.</td></tr>
+<tr><td>7</td><td>Contact humans with tool calls</td><td>HITL is an intent that pauses the loop.</td></tr>
+<tr><td>8</td><td>Own your control flow</td><td>Which intents continue, which break, which wait <em>before invoke</em>.</td></tr>
+<tr><td>9</td><td>Compact errors into context</td><td>Short observation, retry cap, then escalate.</td></tr>
+<tr><td>10</td><td>Small, focused agents</td><td>Roughly 3–20 steps. Scope is a context strategy.</td></tr>
+<tr><td>11</td><td>Trigger from anywhere</td><td>Slack, email, cron, webhook. A service, not a chat box.</td></tr>
+<tr><td>12</td><td>Stateless reducer</td><td><code>next = reduce(events)</code>. Durable state lives outside the process.</td></tr>
+</tbody>
+</table>
+
+<p>Related lessons: <a href="../lessons/0014-twelve-factor-agents.html">0014</a> (the list), <a href="../lessons/0004-context-as-working-memory.html">0004</a> (Factor 3), <a href="../lessons/0011-structured-outputs.html">0011</a> (Factor 4), <a href="../lessons/0012-guardrails-and-hitl.html">0012</a> (Factors 6–8).</p>
+
+<nav class="lessons-nav">
+<span><a href="../syllabus.html">← Syllabus</a></span>
+<span><a href="./glossary.html">Glossary →</a></span>
+</nav>
+</body>
+</html>

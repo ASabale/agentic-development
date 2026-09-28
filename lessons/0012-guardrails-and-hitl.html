@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0012 — Guardrails and HITL</title>
+<link rel="stylesheet" href="../assets/lesson.css">
+</head>
+<body>
+
+<p class="kicker">Lesson 0012 · Phase 3: Production · ~12 minutes</p>
+<h1>Guardrails and human-in-the-loop</h1>
+<p class="subtitle">Layered defense around the loop. A human is a tool that pauses it.</p>
+
+<div class="win">
+<strong>Your one win today</strong>
+Name a layered guardrail stack, and model human contact as a tool call that <em>breaks the loop</em> until a webhook resumes it — not as a vibe of “someone will watch.”
+</div>
+
+<h2>1 · Guardrails are around the model, not inside it</h2>
+
+<p>OpenAI’s <em>Practical Guide to Building Agents</em> treats an agent as a system that can halt and transfer control when it fails or hits a high-risk action. Guardrails are a <span class="strong">layered defense</span>, not a longer system prompt.<a class="cite" href="https://cdn.openai.com/business-guides-and-resources/a-practical-guide-to-building-agents.pdf">[1]</a></p>
+
+<table>
+<thead><tr><th>Layer</th><th>Job</th></tr></thead>
+<tbody>
+<tr><td>Relevance classifier</td><td>Keep the run on-scope. Off-topic → refuse or reroute.</td></tr>
+<tr><td>Safety classifier</td><td>Jailbreaks, disallowed content, prompt injection in observations.</td></tr>
+<tr><td>PII / moderation filters</td><td>Strip or block sensitive data in or out.</td></tr>
+<tr><td>Tool safeguards</td><td>Rate each tool’s blast radius. Read-only vs. money-moving vs. irreversible.</td></tr>
+<tr><td>Rules-based checks</td><td>Blocklists, regex, length caps, allowlisted ids. Cheap and deterministic.</td></tr>
+<tr><td>Output validation</td><td>Schema, policy, groundedness against retrieved evidence.</td></tr>
+<tr><td>Escalation</td><td>On failure or high risk, stop. Do not hope the next thought will behave.</td></tr>
+</tbody>
+</table>
+
+<p>Willison’s least-favorite “agent” definition is staff replacement. Accountability stays with a human. A computer can never be held accountable; therefore a computer must never make a management decision — the 1979 IBM slide still wins.<a class="cite" href="https://simonwillison.net/2025/Sep/18/agents/">[2]</a></p>
+
+<p>Anthropic’s production advice matches: checkpoints for human oversight on high-stakes actions; keep planning steps transparent so a reviewer can see the path.<a class="cite" href="https://www.anthropic.com/engineering/building-effective-agents">[3]</a></p>
+
+<h2>2 · Humans are a tool</h2>
+
+<p>12-factor Factor 7: do not special-case “ask the user” as leftover chat. Give the model a <code>request_human_input</code> intent — question, context, urgency, format (yes/no, multiple choice, free text). When that intent fires:<a class="cite" href="https://github.com/humanlayer/12-factor-agents/blob/main/content/factor-07-contact-humans-with-tools.md">[4]</a></p>
+<ol class="steps">
+<li>Append the request to state.</li>
+<li>Persist the thread (you are about to go to sleep).</li>
+<li>Notify a human on Slack, email, a ticket — Factor 11, meet them where they are.</li>
+<li><strong>Break the loop.</strong> Do not <code>while sleep</code> in a request worker.</li>
+<li>A webhook arrives with the answer; you load state, append the observation, resume.</li>
+</ol>
+
+<p>That is Factor 6 (launch / pause / resume) and Factor 8 (own control flow) in one motion. The number-one missing feature Dex asks of every framework: interrupt <em>between tool selection and tool invocation</em>, so a human can approve the call before it runs.<a class="cite" href="https://github.com/humanlayer/12-factor-agents/blob/main/content/factor-08-own-your-control-flow.md">[5]</a> Without that seam you either (a) block in memory, (b) restrict the agent to toys, or (c) yolo production writes.</p>
+
+<div class="def">
+<span class="label">HITL, operationally</span>
+An explicit control-flow state. Not a dashboard someone might glance at. High-risk intents pause; low-risk intents run; repeated failures escalate. The policy is code.
+</div>
+
+<div class="interview">
+<span class="label">Interview angle</span>
+“How do you keep a refund agent safe?” Weak: “we’ll prompt it to be careful.” Strong: tool-risk ratings; refund is pause-and-approve; relevance/safety classifiers on the ticket and on tool observations (injection arrives through tools); output caps; a human tool; evals on a red-team set. Name the IBM slide if they push “full autonomy.”
+</div>
+
+<h2>3 · Retrieval practice</h2>
+
+<div class="quiz">
+
+<div class="q" data-ans="1">
+<p class="qtext">1. The right place for a jailbreak defense is…</p>
+<label><input type="radio" name="q1"> A longer system prompt, because models always obey it.</label>
+<label class="ans"><input type="radio" name="q1"> A layer around the loop that can halt independent of the model.</label>
+<label><input type="radio" name="q1"> The vector database, which filters embeddings of attacks.</label>
+<div class="feedback ok">Correct. Guardrails are around the model. Prompts are one weak layer, not the stack.</div>
+<div class="feedback no">Models disobey. Embeddings are not a safety layer. Put code around the loop. Option 2.</div>
+</div>
+
+<div class="q" data-ans="2">
+<p class="qtext">2. Factor 7 models a human as…</p>
+<label><input type="radio" name="q2"> A separate web app the agent cannot formally call.</label>
+<label><input type="radio" name="q2"> An ambient reviewer who might read traces later.</label>
+<label class="ans"><input type="radio" name="q2"> A tool intent that pauses, persists, and resumes on a webhook.</label>
+<div class="feedback ok">Correct. <code>request_human_input</code> is structured output. Persistence is mandatory; in-memory sleep is not.</div>
+<div class="feedback no">Ambient review is not a control-flow state. The human is a tool with pause/resume. Option 3.</div>
+</div>
+
+<div class="q" data-ans="0">
+<p class="qtext">3. Why interrupt between selection and invocation?</p>
+<label class="ans"><input type="radio" name="q3"> So a human can approve a high-stakes call before it runs.</label>
+<label><input type="radio" name="q3"> So the model can rewrite the JSON after it has already executed.</label>
+<label><input type="radio" name="q3"> So vendors can bill two tool calls instead of one.</label>
+<div class="feedback ok">Correct. Dex’s framework feature request. Without the seam, you yolo or you never ship writes.</div>
+<div class="feedback no">You cannot un-run a refund. Billing is irrelevant. Option 1.</div>
+</div>
+
+<div class="q" data-ans="2">
+<p class="qtext">4. “Replace the finance team with an agent” fails first on…</p>
+<label><input type="radio" name="q4"> Token cost; agents are always more expensive than payroll.</label>
+<label><input type="radio" name="q4"> JSON Schema, which cannot represent a general ledger.</label>
+<label class="ans"><input type="radio" name="q4"> Accountability — a computer cannot be held to a PIP.</label>
+<div class="feedback ok">Correct. Willison: agency and accountability stay human. Tools-in-a-loop is not a staff replacement.</div>
+<div class="feedback no">Cost and schema are real issues; the category error is accountability. Option 3.</div>
+</div>
+
+</div>
+
+<h2>4 · Read next (primary source)</h2>
+
+<p><a href="https://cdn.openai.com/business-guides-and-resources/a-practical-guide-to-building-agents.pdf">OpenAI — A Practical Guide to Building Agents</a> (guardrails section). Then Factor 7: <a href="https://github.com/humanlayer/12-factor-agents/blob/main/content/factor-07-contact-humans-with-tools.md">Contact humans with tool calls</a>.</p>
+
+<h2>5 · Lock it in</h2>
+<ul>
+<li>From memory: three layers you’d actually ship, plus “human = pausing tool.”</li>
+<li>New glossary terms: <em>guardrail</em>, <em>HITL</em>, <em>interrupt</em>, <em>tool risk</em>.</li>
+</ul>
+
+<p class="reminder">Want to risk-rate a tool list together (read / write / irreversible)? Paste it. That exercise is the lesson.</p>
+
+<nav class="lessons-nav">
+<span><a href="./0011-structured-outputs.html">← 0011 Structured outputs</a></span>
+<span><a href="./0013-evaluating-agents.html">0013 Evaluating agents →</a></span>
+</nav>
+<script src="../assets/quiz.js"></script>
+</body>
+</html>

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0017 — Long-running harnesses</title>
+<link rel="stylesheet" href="../assets/lesson.css">
+</head>
+<body>
+
+<p class="kicker">Lesson 0017 · Phase 4: Advanced · ~12 minutes</p>
+<h1>Long-running harnesses</h1>
+<p class="subtitle">Sessions forget. Artifacts remember. Compaction is not a handoff.</p>
+
+<div class="win">
+<strong>Your one win today</strong>
+Explain why a bigger window does not make a week-long agent, and name Anthropic’s two-agent pattern: an initializer that scaffolds, a coding agent that leaves clean artifacts for the next shift.
+</div>
+
+<h2>1 · The problem is the shift change</h2>
+
+<p>A single LLM call has a window. A “session” is one such window, maybe compacted. A <em>project</em> lasts days. Each new session begins amnesiac. Anthropic’s <em>Effective harnesses for long-running agents</em> compares this to engineers on shifts: the next person needs the repo, the notes, and a way to see that the tests were green when you left.<a class="cite" href="https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents">[1]</a></p>
+
+<p>Two failure modes they name:</p>
+<ul>
+<li>The agent tries to one-shot the entire job in one window, then drown.</li>
+<li>The agent declares victory early so it can stop emitting tokens.</li>
+</ul>
+
+<p>Compaction (lesson 0004) is lossy summary <em>inside</em> a session. It does not replace a handoff <em>across</em> sessions. If the next call cannot <code>git log</code> and read a progress file, it will redo or undo the last shift.</p>
+
+<h2>2 · Initializer + coding agent</h2>
+
+<p>Anthropic’s two-fold solution:<a class="cite" href="https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents">[1]</a></p>
+<div class="split">
+  <div>
+    <h3>Initializer (first run)</h3>
+    <p>Scaffold the environment. Write a machine-readable feature list (<code>feature_list.json</code> — JSON, not markdown, because it resists poetic corruption). Write <code>init.sh</code>. Leave a clean baseline.</p>
+  </div>
+  <div>
+    <h3>Coding agent (every later session)</h3>
+    <p>Make incremental progress. Leave artifacts: progress notes, descriptive git history, passing tests. Stop before the window turns to mush.</p>
+  </div>
+</div>
+
+<p>A session protocol you can steal:</p>
+<ol class="steps">
+<li>Read the progress file.</li>
+<li>Read the feature list. Pick the highest-priority incomplete item.</li>
+<li>Read recent git log (~20 commits) as the true history.</li>
+<li>Start the server / run the baseline tests. Do not work on a red tree.</li>
+<li>Implement the one item. Verify. Commit with a message a future session can parse.</li>
+<li>Write notes for the next shift. Exit.</li>
+</ol>
+
+<p>That is Factor 5 (unify state — the repo <em>is</em> the state), Factor 6 (pause/resume), Factor 10 (small steps), Factor 12 (the next process is a reducer over those artifacts). It is also just good engineering, which is the joke and the point.</p>
+
+<div class="interview">
+<span class="label">Interview angle</span>
+“How would you run an agent overnight on a repo?” Weak: “1M context.” Strong: initializer + per-session worker; externalized feature list and git as memory; verify before and after; compaction only within a session; eval on ‘did the next session know what happened.’ Mention a fresh-context evaluator so the grader does not share the builder’s delusions.
+</div>
+
+<h2>3 · Retrieval practice</h2>
+
+<div class="quiz">
+
+<div class="q" data-ans="1">
+<p class="qtext">1. Why doesn’t a huge context window solve week-long work?</p>
+<label><input type="radio" name="q1"> Providers pad huge windows with random tokens by policy.</label>
+<label class="ans"><input type="radio" name="q1"> Each session still starts empty; rot hits before the week ends.</label>
+<label><input type="radio" name="q1"> Git cannot be read from inside any context window.</label>
+<div class="feedback ok">Correct. Amnesia at session start, rot inside a session. Artifacts bridge shifts. Git can be a tool.</div>
+<div class="feedback no">Not padding, and git is a fine tool. Sessions forget; files don't. Option 2.</div>
+</div>
+
+<div class="q" data-ans="2">
+<p class="qtext">2. JSON for the feature list, not markdown, because…</p>
+<label><input type="radio" name="q2"> Models cannot generate markdown in long-running sessions.</label>
+<label><input type="radio" name="q2"> JSON is cheaper per token than markdown headings.</label>
+<label class="ans"><input type="radio" name="q2"> A structured file is harder for the agent to “poetically” corrupt.</label>
+<div class="feedback ok">Correct. Anthropic’s stated reason: JSON resists corruption better than a free-form progress novel.</div>
+<div class="feedback no">They can write markdown, and token price is not the reason. Structure is. Option 3.</div>
+</div>
+
+<div class="q" data-ans="0">
+<p class="qtext">3. Compaction vs handoff artifacts?</p>
+<label class="ans"><input type="radio" name="q3"> Compaction is in-session and lossy; artifacts survive the next process.</label>
+<label><input type="radio" name="q3"> They are the same mechanism with two vendor names.</label>
+<label><input type="radio" name="q3"> Artifacts are in-session; compaction is the git history itself.</label>
+<div class="feedback ok">Correct. Different timescales. Do not ask a summary to be a repo.</div>
+<div class="feedback no">Not the same, and git is an artifact, not compaction. Option 1.</div>
+</div>
+
+<div class="q" data-ans="2">
+<p class="qtext">4. A coding session should end when…</p>
+<label><input type="radio" name="q4"> The agent has declared the entire product finished.</label>
+<label><input type="radio" name="q4"> The window is empty, to save on cached input tokens.</label>
+<label class="ans"><input type="radio" name="q4"> One item is verified, committed, and noted for the next shift.</label>
+<div class="feedback ok">Correct. Incremental progress. One-shotting and early victory are the named failure modes.</div>
+<div class="feedback no">Don't one-shot, don't empty the window for fun. Finish one verified item. Option 3.</div>
+</div>
+
+</div>
+
+<h2>4 · Read next (primary source)</h2>
+
+<p><a href="https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents">Anthropic — Effective harnesses for long-running agents</a>. Read the initializer / coding-agent split and the artifact list.</p>
+
+<h2>5 · Lock it in</h2>
+<ul>
+<li>Shift-change metaphor. Two agents. Six protocol steps. Recite.</li>
+<li>New glossary terms: <em>harness</em> (deepen), <em>session</em>, <em>handoff artifact</em>, <em>initializer agent</em>.</li>
+<li>Phase 4 complete. Career lessons next — still theory, now pointed at a job.</li>
+</ul>
+
+<p class="reminder">If you want to design the artifact set for a non-coding agent (research, ops), ask. The pattern transfers; the files change.</p>
+
+<nav class="lessons-nav">
+<span><a href="./0016-when-frameworks-pay.html">← 0016 Frameworks</a></span>
+<span><a href="./0018-design-interview.html">0018 Design-interview drill →</a></span>
+</nav>
+<script src="../assets/quiz.js"></script>
+</body>
+</html>

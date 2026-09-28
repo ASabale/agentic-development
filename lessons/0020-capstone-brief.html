@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0020 — Capstone brief</title>
+<link rel="stylesheet" href="../assets/lesson.css">
+</head>
+<body>
+
+<p class="kicker">Lesson 0020 · Phase 5: Career · ~10 minutes</p>
+<h1>Capstone brief</h1>
+<p class="subtitle">The portfolio agent you will build in this workspace. Theory first is over; this is the job description.</p>
+
+<div class="win">
+<strong>Your one win today</strong>
+Leave with a scoped capstone you could defend in an interview: framework-free loop, three to seven tools, one HITL seam, a tiny eval set, traces you can show. Not a platform. Not multi-agent.
+</div>
+
+<h2>1 · What “portfolio-grade” means here</h2>
+
+<p>From the mission:</p>
+<blockquote>A portfolio-grade project in this workspace demonstrating production concerns: guardrails, observability, evals, cost/latency trade-offs, human-in-the-loop.</blockquote>
+
+<p>And: build a non-trivial agent (tools + loop + memory) <em>without a framework</em>, then justify when a framework would be the right call.</p>
+
+<p>Translate that into acceptance criteria you cannot weasel out of:</p>
+<ul>
+<li><strong>Harness you wrote.</strong> The five beats in your language of choice. No LangGraph, no Agents SDK loop until the write-up explains why you would add one.</li>
+<li><strong>ACI.</strong> A handful of tools with real schemas and compact errors. At least one irreversible verb gated by HITL (even if the “human” is you typing <code>y</code>).</li>
+<li><strong>Memory that is not a slogan.</strong> Notes file or sqlite. Pointers in the window. Exact ids stored exactly.</li>
+<li><strong>Evals.</strong> ≥10 tasks with expected world-state. Code graders. One regression run in a README.</li>
+<li><strong>Traces.</strong> Every run dumps the transcript. You can open a fail and talk through it.</li>
+<li><strong>Write-up.</strong> Architecture page that uses this course’s words: workflow vs agent, cost, failure modes, what you would not do.</li>
+</ul>
+
+<h2>2 · Pick a small, sharp job</h2>
+
+<p>Factor 10. If the demo needs twenty tools, it is two products. Three good options that fit a work machine like this one:</p>
+<div class="patterns">
+  <div class="pattern">
+    <h3>Repo question-answerer</h3>
+    <p>Tools: list_dir, read_file, grep, ask_human. Goal: answer a question about <em>this</em> teaching workspace with citations to files. Eval: 10 questions with known paths.</p>
+  </div>
+  <div class="pattern">
+    <h3>Ticket triage + draft</h3>
+    <p>Fake a small ticket DB. Tools: search_tickets, get_ticket, search_policy, draft_reply, escalate (HITL). Eval: 10 tickets, expected label + whether escalate fired.</p>
+  </div>
+  <div class="pattern">
+    <h3>Local research clerk</h3>
+    <p>Tools: web_search (or a fixture corpus), fetch, take_notes, finish. Hard cap 8 steps. Eval: 10 queries with must-cite URLs or fixture ids.</p>
+  </div>
+</div>
+
+<p>Do not build a platform. Do not spawn subagents. Do not fine-tune. Those are out of mission scope or Phase-4 luxuries you have not earned on a resume with a missing loop.</p>
+
+<h2>3 · Order of build (when we start)</h2>
+
+<ol class="steps">
+<li>Write the eval tasks first (0013). Empty array of cases. This is the contract.</li>
+<li>Write the tool schemas and a dumb fake backend (0005, 0011).</li>
+<li>Write the loop (0002). Make eval 1 pass with canned tool results if you must.</li>
+<li>Add error compaction and a step cap (Factor 9, 10).</li>
+<li>Add HITL on the dangerous verb (0012).</li>
+<li>Add notes memory (0009).</li>
+<li>Measure tokens per task. Put the number in the write-up.</li>
+<li>Only then talk about a framework you would have used for pause/resume (0016).</li>
+</ol>
+
+<div class="interview">
+<span class="label">How you will talk about it</span>
+“I wrote a tools-in-a-loop harness without a framework, with X tools, a human gate on Y, and N eval tasks grading world-state. Token cost is Z per task. I would reach for LangGraph if I needed durable interrupts across processes. I did not, yet.”
+</div>
+
+<h2>4 · Retrieval practice</h2>
+
+<div class="quiz">
+
+<div class="q" data-ans="0">
+<p class="qtext">1. First artifact of the capstone, before a clever loop?</p>
+<label class="ans"><input type="radio" name="q1"> A held-out list of tasks with expected world-state.</label>
+<label><input type="radio" name="q1"> A multi-agent diagram suitable for the README hero.</label>
+<label><input type="radio" name="q1"> A LangGraph install so later code has somewhere to live.</label>
+<div class="feedback ok">Correct. Evals first. The tasks are the spec. Diagrams and runtimes come after a loop that can fail those tasks.</div>
+<div class="feedback no">No subagents, no framework-first. Tasks with expected state. Option 1.</div>
+</div>
+
+<div class="q" data-ans="2">
+<p class="qtext">2. Why HITL still appears in a solo portfolio project?</p>
+<label><input type="radio" name="q2"> Interviewers require a Slack integration to give an offer.</label>
+<label><input type="radio" name="q2"> Models refuse irreversible tools unless a human UID is sent.</label>
+<label class="ans"><input type="radio" name="q2"> You must show the pause-before-invoke seam, even as a yes/no prompt.</label>
+<div class="feedback ok">Correct. The seam is the production concern. A stdin confirm counts. Slack can wait.</div>
+<div class="feedback no">Not a vendor requirement, not an API rule. Show the interrupt. Option 3.</div>
+</div>
+
+<div class="q" data-ans="1">
+<p class="qtext">3. A capstone that only demos a happy path is weak because…</p>
+<label><input type="radio" name="q3"> Happy paths cannot be recorded as traces in principle.</label>
+<label class="ans"><input type="radio" name="q3"> Production concerns are errors, gates, evals, and cost.</label>
+<label><input type="radio" name="q3"> Interviewers no longer believe in tools-in-a-loop at all.</label>
+<div class="feedback ok">Correct. Mission language: guardrails, observability, evals, cost, HITL. The happy path is table stakes.</div>
+<div class="feedback no">Traces can record anything, and the loop is still the definition. Show the production surface. Option 2.</div>
+</div>
+
+<div class="q" data-ans="2">
+<p class="qtext">4. Out of scope for this capstone?</p>
+<label><input type="radio" name="q4"> A notes file the agent reads with a tool.</label>
+<label><input type="radio" name="q4"> Ten eval tasks with code graders.</label>
+<label class="ans"><input type="radio" name="q4"> Fine-tuning a model and a swarm of subagents.</label>
+<div class="feedback ok">Correct. Mission out-of-scope: weights-level work. Phase 4 multi-agent is a luxury until the loop exists.</div>
+<div class="feedback no">Notes and evals are in scope. Fine-tune + swarm is not. Option 3.</div>
+</div>
+
+</div>
+
+<h2>5 · Read next (primary source)</h2>
+
+<p>No new paper. Re-open <a href="../MISSION.md">MISSION.md</a> and this brief. Then tell me in chat which of the three jobs you want — or a fourth that still fits the acceptance criteria. We will not write code until you pick, and we will write evals first.</p>
+
+<h2>6 · Lock it in</h2>
+<ul>
+<li>The capstone is a job description, not a hope. Pick, then build in a later session.</li>
+<li>Syllabus complete. Return to 0002 if any quiz from Phase 1 is fuzzy — spacing over binge.</li>
+</ul>
+
+<p class="reminder">Ask follow-ups on any lesson. Grill requests, schema reviews, interview drills — that is the rest of the course, in conversation.</p>
+
+<nav class="lessons-nav">
+<span><a href="./0019-read-a-real-ship.html">← 0019 Read a ship</a></span>
+<span><a href="../syllabus.html">Syllabus →</a></span>
+</nav>
+<script src="../assets/quiz.js"></script>
+</body>
+</html>

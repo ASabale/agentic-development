@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0010 — RAG for agents</title>
+<link rel="stylesheet" href="../assets/lesson.css">
+</head>
+<body>
+
+<p class="kicker">Lesson 0010 · Phase 2: Core patterns · ~12 minutes</p>
+<h1>RAG for agents</h1>
+<p class="subtitle">Retrieval is a tool inside the loop, not a preprocessor you run once.</p>
+
+<div class="win">
+<strong>Your one win today</strong>
+Define RAG in one sentence, name the chunking failure Anthropic actually measured, and say when an agent should <em>search</em> instead of having docs glued to the prompt.
+</div>
+
+<h2>1 · RAG, without the product</h2>
+
+<div class="def">
+<span class="label">RAG</span>
+<strong>Retrieval-augmented generation:</strong> fetch relevant pieces of a knowledge base and append them to the prompt so the model can ground its next tokens in those pieces, rather than in parametric memory alone.
+<a class="cite" href="https://www.anthropic.com/engineering/contextual-retrieval">[1]</a>
+</div>
+
+<p>Classic pipeline, still worth knowing cold:</p>
+<ol class="steps">
+<li>Chunk the corpus (pages, paragraphs, overlapping windows).</li>
+<li>Index the chunks — embeddings, keyword (BM25), or both.</li>
+<li>At query time, retrieve top-k, optionally rerank.</li>
+<li>Stuff them into the window and generate.</li>
+</ol>
+
+<p>That pipeline is a <em>workflow</em> (lesson 0003): your code always retrieves, then always generates. It is the right default when the question is “answer from this corpus, once.”</p>
+
+<h2>2 · The failure RAG actually has</h2>
+
+<p>Anthropic’s <em>Contextual Retrieval</em> post names the boring, load-bearing bug: chunking destroys context. A chunk that says “the revenue grew 3%” is useless if you have lost which company and which year.<a class="cite" href="https://www.anthropic.com/engineering/contextual-retrieval">[1]</a></p>
+
+<p>Their fix is not a new database. It is <span class="strong">Contextual Embeddings</span> + <span class="strong">Contextual BM25</span>: prepend a short, chunk-specific context (model-written) before you embed and before you index for keyword search. They report a 49% drop in retrieval failures, 67% with a reranker.<a class="cite" href="https://www.anthropic.com/engineering/contextual-retrieval">[1]</a></p>
+
+<p>Interview-useful morals:</p>
+<ul>
+<li>Retrieval quality is often the bottleneck, not the generator.</li>
+<li>Keyword search is first-class. Hybrid (BM25 + embeddings) is the grown-up default.</li>
+<li>“We use RAG” is not an architecture. Say how you chunk, index, and measure miss rate.</li>
+</ul>
+
+<h2>3 · Agentic retrieval: search as a tool</h2>
+
+<p>Agents change the topology. Instead of stuffing the likely docs up front, you give the model a search tool (and a read tool) and let it pull just-in-time. Factor 3 called this progressive disclosure: keep pointers, load bytes when needed.<a class="cite" href="https://github.com/humanlayer/12-factor-agents/blob/main/content/factor-03-own-your-context-window.md">[2]</a></p>
+
+<table>
+<thead><tr><th></th><th>Pre-retrieve (workflow)</th><th>Search-as-tool (agent)</th></tr></thead>
+<tbody>
+<tr><td>When</td><td>Query known; corpus small enough to guess well</td><td>What to read depends on what you find</td></tr>
+<tr><td>Cost</td><td>One retrieval + one generation</td><td>Several tool calls; more tokens, more latency</td></tr>
+<tr><td>Failure</td><td>Wrong chunks, silently</td><td>Bad queries, recoverable if the tool returns misses honestly</td></tr>
+</tbody>
+</table>
+
+<p>You can combine them: a cheap first retrieve for likely context, plus a search tool for the residue. That is still a workflow with an agentic pocket — which is how production systems actually look.<a class="cite" href="https://github.com/humanlayer/12-factor-agents">[3]</a></p>
+
+<div class="interview">
+<span class="label">Interview angle</span>
+“Should we RAG or agent-search our wiki?” Strong: start with hybrid retrieval and measure miss rate (contextualize chunks). Promote search-as-a-tool when the next document depends on the last one. Never say “RAG” without saying chunking, hybrid index, and an eval set of questions with known passages.
+</div>
+
+<h2>4 · Retrieval practice</h2>
+
+<div class="quiz">
+
+<div class="q" data-ans="1">
+<p class="qtext">1. RAG, stripped of vendors, is…</p>
+<label><input type="radio" name="q1"> Fine-tuning the model on your corpus every night.</label>
+<label class="ans"><input type="radio" name="q1"> Fetching relevant chunks and appending them to the prompt.</label>
+<label><input type="radio" name="q1"> Replacing the context window with a vector database.</label>
+<div class="feedback ok">Correct. Retrieve, then generate. The window still exists; you just put evidence in it.</div>
+<div class="feedback no">Not training, not replacing the window. Stuff evidence into the prompt. Option 2.</div>
+</div>
+
+<div class="q" data-ans="2">
+<p class="qtext">2. Anthropic’s contextual retrieval targets which failure?</p>
+<label><input type="radio" name="q2"> GPUs cannot embed documents longer than 512 tokens.</label>
+<label><input type="radio" name="q2"> BM25 is theoretically incompatible with embeddings.</label>
+<label class="ans"><input type="radio" name="q2"> Chunking strips the surrounding context a chunk needs.</label>
+<div class="feedback ok">Correct. Prepend chunk-specific context before embedding and before BM25. Measured drop in failed retrievals.</div>
+<div class="feedback no">The bug is lost context from chunking, not a GPU or theory limit. Option 3.</div>
+</div>
+
+<div class="q" data-ans="0">
+<p class="qtext">3. Prefer search-as-a-tool over pre-retrieve when…</p>
+<label class="ans"><input type="radio" name="q3"> What to read next depends on what the last fetch showed.</label>
+<label><input type="radio" name="q3"> You have already bought a vector database this quarter.</label>
+<label><input type="radio" name="q3"> The corpus fits in a single prompt with room to spare.</label>
+<div class="feedback ok">Correct. That is the agent test again: the path depends on discovery. If the corpus is tiny, just put it in the prompt.</div>
+<div class="feedback no">Purchases and tiny corpora do not justify a loop. Discovery does. Option 1.</div>
+</div>
+
+<div class="q" data-ans="2">
+<p class="qtext">4. A grown-up RAG answer in an interview names…</p>
+<label><input type="radio" name="q4"> Only the vendor, because chunking is an implementation detail.</label>
+<label><input type="radio" name="q4"> Only the generator model, because retrieval always works.</label>
+<label class="ans"><input type="radio" name="q4"> Chunking, hybrid index, miss-rate eval, then the generator.</label>
+<div class="feedback ok">Correct. Retrieval is often the bottleneck. If you cannot say how you measure misses, you do not have RAG; you have hope.</div>
+<div class="feedback no">Vendor and generator are the least interesting parts. Option 3.</div>
+</div>
+
+</div>
+
+<h2>5 · Read next (primary source)</h2>
+
+<p><a href="https://www.anthropic.com/engineering/contextual-retrieval">Anthropic — Contextual Retrieval</a>. That is the RAG lesson; the agent twist is Factor 3’s just-in-time pointers, which you already have.</p>
+
+<h2>6 · Lock it in</h2>
+<ul>
+<li>One sentence RAG. One sentence why chunking breaks. One sentence when search is a tool.</li>
+<li>New glossary terms: <em>RAG</em>, <em>chunking</em>, <em>BM25</em>, <em>hybrid search</em>, <em>contextual retrieval</em>, <em>agentic retrieval</em>.</li>
+<li>Phase 2 complete. Recite ACI, CoT, ReAct, Reflexion, STM/LTM, RAG before opening 0011.</li>
+</ul>
+
+<p class="reminder">If you want to design a tiny eval set for a wiki (10 questions, known passages), ask. Measuring misses is the skill; we can sketch it without a cluster.</p>
+
+<nav class="lessons-nav">
+<span><a href="./0009-memory.html">← 0009 Memory</a></span>
+<span><a href="./0011-structured-outputs.html">0011 Structured outputs →</a></span>
+</nav>
+<script src="../assets/quiz.js"></script>
+</body>
+</html>

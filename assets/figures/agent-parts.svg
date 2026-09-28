@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 220" role="img" aria-labelledby="t d">
+  <title id="t">Four parts of an LLM agent</title>
+  <desc id="d">Brain, hands, habit, and job description arranged as one system.</desc>
+  <style>
+    text { font-family: ui-sans-serif, system-ui, sans-serif; fill: #211f1a; }
+    .box { fill: #fff; stroke: #211f1a; stroke-width: 1.5; }
+    .wash { fill: #f6ede4; }
+    .sub { fill: #6e6758; font-size: 12px; }
+    .lbl { font-size: 15px; font-weight: 700; }
+  </style>
+  <rect class="box wash" x="16" y="28" width="150" height="150" rx="10"/>
+  <text class="lbl" x="91" y="88" text-anchor="middle">LLM</text>
+  <text class="sub" x="91" y="110" text-anchor="middle">the brain</text>
+  <text class="sub" x="91" y="128" text-anchor="middle">decides next</text>
+  <rect class="box" x="196" y="28" width="150" height="150" rx="10"/>
+  <text class="lbl" x="271" y="88" text-anchor="middle">Tools</text>
+  <text class="sub" x="271" y="110" text-anchor="middle">the hands</text>
+  <text class="sub" x="271" y="128" text-anchor="middle">your code runs</text>
+  <rect class="box" x="376" y="28" width="150" height="150" rx="10" fill="#f8f1e0" stroke="#8a6d2f"/>
+  <text class="lbl" x="451" y="88" text-anchor="middle">Loop</text>
+  <text class="sub" x="451" y="110" text-anchor="middle">the habit</text>
+  <text class="sub" x="451" y="128" text-anchor="middle">observe, decide</text>
+  <rect class="box" x="556" y="28" width="150" height="150" rx="10" fill="#ecf3ec" stroke="#2f7d3b"/>
+  <text class="lbl" x="631" y="88" text-anchor="middle">Goal</text>
+  <text class="sub" x="631" y="110" text-anchor="middle">the job</text>
+  <text class="sub" x="631" y="128" text-anchor="middle">when to stop</text>
+  <text class="sub" x="360" y="206" text-anchor="middle">Willison’s line, drawn as parts — not a copy of any source figure</text>
+</svg>

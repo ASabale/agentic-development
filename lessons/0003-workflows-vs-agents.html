@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0003 — Workflows vs agents</title>
+<link rel="stylesheet" href="../assets/lesson.css">
+</head>
+<body>
+
+<p class="kicker">Lesson 0003 · Phase 1: Foundations · ~12 minutes</p>
+<h1>Workflows vs agents</h1>
+<p class="subtitle">Five production patterns. Who picks the next step?</p>
+
+<div class="win">
+<strong>Your one win today</strong>
+Name Anthropic's five workflow patterns, and apply the one-question test — <em>who picks the next step?</em> — to any architecture an interviewer sketches.
+</div>
+
+<h2>1 · The line, restated</h2>
+
+<p>Lesson 0001 gave you the test. Today you get the menu. Anthropic’s production taxonomy, from the post every interviewer has read:<a class="cite" href="https://www.anthropic.com/engineering/building-effective-agents">[1]</a></p>
+
+<div class="split">
+  <div>
+    <h3>Workflow</h3>
+    <p>LLMs and tools orchestrated through <strong>predefined code paths</strong>. Your code decides the order of steps.</p>
+  </div>
+  <div>
+    <h3>Agent</h3>
+    <p>The LLM <strong>dynamically directs</strong> its own process and tool usage. Your code maintains the loop; the model chooses the path.</p>
+  </div>
+</div>
+
+<p>Both sit on the same building block: the <span class="strong">augmented LLM</span> — a model with retrieval, tools, and memory available.<a class="cite" href="https://www.anthropic.com/engineering/building-effective-agents">[1]</a> An agent is an augmented LLM plus a model-directed loop. A workflow is an augmented LLM (or several) whose next step is in <em>your</em> graph.</p>
+
+<p>Anthropic’s first advice, which you will quote in interviews: find the simplest solution possible, and only increase complexity when it demonstrably helps. Agentic systems trade latency and cost for flexibility. For many apps, one well-prompted LLM call with retrieval is enough.<a class="cite" href="https://www.anthropic.com/engineering/building-effective-agents">[1]</a></p>
+
+<h2>2 · Five workflows, one axis</h2>
+
+<p>The five patterns below are all <em>workflows</em> — even orchestrator-workers, which looks agent-like — because a programmer wrote the topology. The axis is how much of the path is fixed vs. chosen at runtime.</p>
+
+<div class="patterns with-figs">
+  <div class="pattern">
+    <h3>Prompt chaining</h3>
+    <p>A sequence of LLM calls, each consuming the last. Add programmatic gates between steps so a bad intermediate cannot poison the rest. Use when the task cleanly decomposes into fixed subtasks. You buy accuracy with latency.</p>
+    <figure class="aid">
+      <img src="../assets/figures/anthropic/prompt-chaining.png" alt="Prompt chaining: LLM calls in sequence, with a gate between them.">
+      <figcaption>Anthropic, <a href="https://www.anthropic.com/engineering/building-effective-agents">Building effective agents</a> — the prompt chaining workflow.</figcaption>
+    </figure>
+  </div>
+  <div class="pattern">
+    <h3>Routing</h3>
+    <p>Classify the input, then send it to a specialized prompt or model. Use when categories are distinct and classification is reliable. Optimizing one category no longer wrecks the others.</p>
+    <figure class="aid">
+      <img src="../assets/figures/anthropic/routing.png" alt="Routing: one classifier sends the input to a specialized follow-up.">
+      <figcaption>Anthropic — the routing workflow.</figcaption>
+    </figure>
+  </div>
+  <div class="pattern">
+    <h3>Parallelization</h3>
+    <p>Two flavors. <em>Sectioning:</em> independent subtasks run at once. <em>Voting:</em> the same task run several times, then aggregated. Use for speed, or for confidence from multiple attempts.</p>
+    <figure class="aid">
+      <img src="../assets/figures/anthropic/parallelization.png" alt="Parallelization: sectioning runs subtasks at once; voting aggregates several attempts.">
+      <figcaption>Anthropic — the parallelization workflow.</figcaption>
+    </figure>
+  </div>
+  <div class="pattern">
+    <h3>Orchestrator–workers</h3>
+    <p>A lead LLM breaks the job into subtasks <em>at runtime</em> and delegates to workers, then synthesizes. Subtasks are not pre-defined — that is the difference from parallelization. The topology is still yours.</p>
+    <figure class="aid">
+      <img src="../assets/figures/anthropic/orchestrator-workers.png" alt="An orchestrator LLM delegates to worker LLMs, then synthesizes.">
+      <figcaption>Anthropic — the orchestrator–workers workflow.</figcaption>
+    </figure>
+  </div>
+  <div class="pattern">
+    <h3>Evaluator–optimizer</h3>
+    <p>One LLM generates; another critiques against clear criteria; loop until the evaluator accepts. Use only when (a) criteria are crisp and (b) feedback actually improves the next draft.</p>
+    <figure class="aid">
+      <img src="../assets/figures/anthropic/evaluator-optimizer.png" alt="A generator and an evaluator loop until the output passes.">
+      <figcaption>Anthropic — the evaluator–optimizer workflow.</figcaption>
+    </figure>
+  </div>
+  <div class="pattern">
+    <h3>Then: the agent</h3>
+    <p>Drop the fixed graph. The model picks tools in a loop until a goal is met. Reach for this when you cannot enumerate the steps in advance — when the path depends on what you discover.</p>
+    <figure class="aid">
+      <img src="../assets/figures/anthropic/agent.png" alt="An agent loop: the model chooses tools from feedback until it stops.">
+      <figcaption>Anthropic — autonomous agent, the far end of the same axis.</figcaption>
+    </figure>
+  </div>
+</div>
+
+<p>Print the <a href="../reference/workflow-patterns.html">cheat sheet</a>. The names are interview vocabulary; the “when to use” lines are the actual skill.</p>
+
+<h2>3 · The cost of climbing the ladder</h2>
+
+<p>Each rung spends more tokens, more latency, and more ways to fail. Anthropic: the most successful production systems were not using complex frameworks. They were composing these patterns in a few lines of API code.<a class="cite" href="https://www.anthropic.com/engineering/building-effective-agents">[1]</a> Dex Horthy independently observed the same: products billed as “agents” are often mostly deterministic code with LLM steps at the magical points.<a class="cite" href="https://github.com/humanlayer/12-factor-agents">[2]</a></p>
+
+<div class="interview">
+<span class="label">Interview angle</span>
+“We need an agent for invoice processing.” The strong answer: default to a workflow. Invoices have known stages (extract → validate → route → post). That is prompt chaining plus routing, with a human gate on post. An agent is justified only for the residue — exceptions whose next step truly cannot be enumerated.
+</div>
+
+<h2>4 · Retrieval practice</h2>
+
+<div class="quiz">
+
+<div class="q" data-ans="1">
+<p class="qtext">1. Which pattern is it: a lead model invents subtasks at runtime and assigns them?</p>
+<label><input type="radio" name="q1"> Parallelization — the subtasks were listed by the programmer.</label>
+<label class="ans"><input type="radio" name="q1"> Orchestrator–workers — subtasks are chosen from the input.</label>
+<label><input type="radio" name="q1"> Prompt chaining — each call consumes the previous output.</label>
+<div class="feedback ok">Correct. Parallelization's subtasks are pre-defined. Orchestrator–workers invent them from the specific input. That is the documented distinction.</div>
+<div class="feedback no">The documented difference from parallelization: subtasks aren't pre-defined; the orchestrator determines them from the input. Option 2.</div>
+</div>
+
+<div class="q" data-ans="2">
+<p class="qtext">2. A pipeline summarizes, then translates, then emails — always in that order. Agent or workflow?</p>
+<label><input type="radio" name="q2"> Agent — three LLM calls means the system is agentic.</label>
+<label><input type="radio" name="q2"> Either — it depends which vendor SDK you wrapped it in.</label>
+<label class="ans"><input type="radio" name="q2"> Workflow — the programmer, not the model, picked the order.</label>
+<div class="feedback ok">Correct. Who picks the next step? The programmer. LLM involvement is necessary for neither category on its own.</div>
+<div class="feedback no">The test is control flow, not LLM-count or SDK. Fixed order = workflow. Option 3.</div>
+</div>
+
+<div class="q" data-ans="0">
+<p class="qtext">3. When does Anthropic say to reach for an agent rather than a workflow?</p>
+<label class="ans"><input type="radio" name="q3"> When the steps cannot be enumerated in advance.</label>
+<label><input type="radio" name="q3"> When the team has already bought an agent framework.</label>
+<label><input type="radio" name="q3"> When a single LLM call is already hitting its token cap.</label>
+<div class="feedback ok">Correct. Flexibility is the only reason to give the model the steering wheel — and you pay in cost, latency, and failure modes.</div>
+<div class="feedback no">Frameworks and token caps are not the test. Use an agent when the path depends on what you discover. Option 1.</div>
+</div>
+
+<div class="q" data-ans="2">
+<p class="qtext">4. Evaluator–optimizer is a good fit when…</p>
+<label><input type="radio" name="q4"> You want two models so the system counts as multi-agent.</label>
+<label><input type="radio" name="q4"> The first draft is always thrown away, regardless of quality.</label>
+<label class="ans"><input type="radio" name="q4"> Criteria are clear, and feedback actually improves drafts.</label>
+<div class="feedback ok">Correct. Anthropic's two signs of fit: the output can be demonstrably improved by feedback, and the LLM can give meaningful feedback itself.</div>
+<div class="feedback no">Two models do not make a multi-agent system, and looping without improvement is just spend. Option 3.</div>
+</div>
+
+</div>
+
+<h2>5 · Read next (primary source)</h2>
+
+<p><a href="https://www.anthropic.com/engineering/building-effective-agents">Anthropic — Building effective agents</a>. Read the workflow patterns section in full. This is the source the industry converged on. Optional: the <a href="https://github.com/anthropics/anthropic-cookbook/blob/main/patterns/agents/basic_workflows.ipynb">cookbook implementations</a> of chain, route, and parallel — short enough to skim the functions, not the notebook chrome.</p>
+
+<h2>6 · Lock it in</h2>
+<ul>
+<li>Recite the five names, then the one-line “when.” Cover this page.</li>
+<li>New glossary terms: <em>augmented LLM</em>, <em>prompt chaining</em>, <em>routing</em>, <em>parallelization</em>, <em>orchestrator–workers</em>, <em>evaluator–optimizer</em>.</li>
+<li>Before 0004: pick a product you use. Classify it as a workflow pattern or an agent. Be ready to defend.</li>
+</ul>
+
+<p class="reminder">If a pattern still feels like a synonym for another, ask. The distinctions are load-bearing in interviews; we can drill them.</p>
+
+<nav class="lessons-nav">
+<span><a href="./0002-tools-in-a-loop.html">← 0002 Tools in a loop</a></span>
+<span><a href="./0004-context-as-working-memory.html">0004 Context as working memory →</a></span>
+</nav>
+<script src="../assets/quiz.js"></script>
+</body>
+</html>

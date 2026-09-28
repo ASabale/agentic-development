@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0022 — System prompts and roles</title>
+<link rel="stylesheet" href="../assets/lesson.css">
+</head>
+<body>
+
+<p class="kicker">Lesson 0022 · Phase 1 depth · ~10 minutes</p>
+<h1>System prompts and roles</h1>
+<p class="subtitle">The prefix the user never sees. Factor 2: if you cannot grep it, you do not own the agent.</p>
+
+<div class="win">
+<strong>Your one win today</strong>
+Name the three common roles, say what the system prompt is for in a coding/agent harness, and refuse to let a framework hide that string.
+</div>
+
+<h2>1 · Roles are just labeled slices of the prefix</h2>
+
+<p>A chat-templated prompt is a completion string with names attached. The usual cast:<a class="cite" href="https://simonwillison.net/guides/agentic-engineering-patterns/how-coding-agents-work/">[1]</a></p>
+<table>
+<thead><tr><th>Role</th><th>Who writes it</th><th>Typical job</th></tr></thead>
+<tbody>
+<tr><td><code>system</code> / developer</td><td>You, once per product (plus tool schemas)</td><td>How to behave; what tools exist; output shape; safety rails that are <em>text</em>, not a real lock</td></tr>
+<tr><td><code>user</code></td><td>The human, or a webhook, or another agent</td><td>The goal for this turn</td></tr>
+<tr><td><code>assistant</code></td><td>The model (or you, in few-shot exemplars)</td><td>Thoughts, answers, tool-call blocks</td></tr>
+<tr><td><code>tool</code> / function output</td><td>The harness</td><td>Observations, paired by id (lesson 0002)</td></tr>
+</tbody>
+</table>
+
+<p>Different vendors spell this differently. OpenAI has used <code>system</code> then a stronger <code>developer</code> role on some models. Anthropic puts a lot of “system” in a top-level <code>system</code> parameter rather than a message. The idea does not change: there is a prefix the end user does not author, and it is the highest-leverage document in the product.</p>
+
+<div class="def">
+<span class="label">System prompt</span>
+The instructions, not shown in the UI, that start every conversation. Coding agents’ system prompts run to hundreds of lines — Codex’s published template is a useful specimen of what actually makes a loop behave.
+<a class="cite" href="https://simonwillison.net/guides/agentic-engineering-patterns/how-coding-agents-work/">[1]</a>
+</div>
+
+<h2>2 · Own the string</h2>
+
+<p>12-factor Factor 2: own your prompts.<a class="cite" href="https://github.com/humanlayer/12-factor-agents">[2]</a> If LangChain or an “agent SDK” concatenates a hidden preamble you cannot print, you cannot:</p>
+<ul>
+<li>eval a change (“did this sentence fix over-engineering?”)</li>
+<li>debug a weird tool call (the instruction may already forbid it — or invite it)</li>
+<li>know what leaked when a user jailbreaks “ignore previous instructions”</li>
+</ul>
+
+<p>Treat the system prompt as source code. Version it. Diff it. Put a hash of it on traces (lesson 0026). Do not let it rot as a 2,000-line novel; Factor 10 applies to prompts too.</p>
+
+<p>Tool schemas sit next to it in the prefix. They are also prompt. Changing a description is a prompt change (lesson 0005).</p>
+
+<div class="interview">
+<span class="label">Interview angle</span>
+“What’s in your system prompt?” Strong: I can cat it; it names tools, output rules, and stop conditions; tool descriptions are separate files we review like APIs; we eval prompt diffs. Weak: “whatever the framework default is.”
+</div>
+
+<h2>3 · Retrieval practice</h2>
+
+<div class="quiz">
+
+<div class="q" data-ans="2">
+<p class="qtext">1. The system prompt is powerful because…</p>
+<label><input type="radio" name="q1"> It is compiled into the model checkpoint at deploy time.</label>
+<label><input type="radio" name="q1"> Providers guarantee it cannot be overridden by later tokens.</label>
+<label class="ans"><input type="radio" name="q1"> It is the stable prefix of every call — and still just tokens.</label>
+<div class="feedback ok">Correct. High leverage because it is always there. Not a lock: injection exists (lesson 0027). Not compiled into weights.</div>
+<div class="feedback no">Not a fine-tune, and not an override-proof vault. Tokens in the prefix. Option 3.</div>
+</div>
+
+<div class="q" data-ans="0">
+<p class="qtext">2. Factor 2 in one line?</p>
+<label class="ans"><input type="radio" name="q2"> If you cannot print the prompt, you do not own the agent.</label>
+<label><input type="radio" name="q2"> Prompts must be written by the model, never by engineers.</label>
+<label><input type="radio" name="q2"> System prompts are deprecated; only tool schemas remain.</label>
+<div class="feedback ok">Correct. Hidden framework preambles are undebuggable source code.</div>
+<div class="feedback no">Engineers write prompts; they are not deprecated. Own the string. Option 1.</div>
+</div>
+
+<div class="q" data-ans="1">
+<p class="qtext">3. Tool descriptions belong…</p>
+<label><input type="radio" name="q3"> Only in a wiki the model cannot see.</label>
+<label class="ans"><input type="radio" name="q3"> In the prefix, next to the system prompt — they are prompt too.</label>
+<label><input type="radio" name="q3"> In the sampler config, as a vendor-side safety feature.</label>
+<div class="feedback ok">Correct. ACI is prompt surface. A description change is a prompt diff.</div>
+<div class="feedback no">Wikis the model never reads do not count, and samplers are not docs. Option 2.</div>
+</div>
+
+<div class="q" data-ans="2">
+<p class="qtext">4. A 4,000-line system prompt is a smell because…</p>
+<label><input type="radio" name="q4"> Models reject system messages longer than two sentences.</label>
+<label><input type="radio" name="q4"> Cached prefixes cannot include system text by specification.</label>
+<label class="ans"><input type="radio" name="q4"> It burns the window, rot included, and becomes un-evalable.</label>
+<div class="feedback ok">Correct. Factor 10 for prompts. Cache actually *loves* a stable system prefix (0025) — length is still attention cost.</div>
+<div class="feedback no">No two-sentence cap, and system text *is* cacheable. The smell is rot and eval. Option 3.</div>
+</div>
+
+</div>
+
+<h2>4 · Read next (primary source)</h2>
+
+<p>Willison’s link to a real system prompt: the Codex instructions template cited from <a href="https://simonwillison.net/guides/agentic-engineering-patterns/how-coding-agents-work/">How coding agents work</a>. Skim structure, not every rule. Then Factor 2 in the <a href="https://github.com/humanlayer/12-factor-agents">12-factor README</a>.</p>
+
+<h2>5 · Lock it in</h2>
+<ul>
+<li>Roles: system, user, assistant, tool. Own the first.</li>
+<li>New glossary terms: <em>system prompt</em>, <em>role</em>, <em>developer message</em>.</li>
+</ul>
+
+<p class="reminder">Want to critique a bloated system prompt? Paste one (redact secrets). Editing it is better practice than another paragraph.</p>
+
+<nav class="lessons-nav">
+<span><a href="./0021-what-an-llm-actually-is.html">← 0021 What an LLM is</a></span>
+<span><a href="./0023-tokens-cost-and-latency.html">0023 Tokens, cost, latency →</a></span>
+</nav>
+<script src="../assets/quiz.js"></script>
+</body>
+</html>

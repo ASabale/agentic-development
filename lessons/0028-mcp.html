@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0028 — Model Context Protocol</title>
+<link rel="stylesheet" href="../assets/lesson.css">
+</head>
+<body>
+
+<p class="kicker">Lesson 0028 · Phase 4 depth · ~12 minutes</p>
+<h1>Model Context Protocol</h1>
+<p class="subtitle">A USB-C for tools, resources, and prompts. Not an agent. Not a replacement for your harness.</p>
+
+<div class="win">
+<strong>Your one win today</strong>
+Draw host / client / server, name the three server primitives (tools, resources, prompts), and say what MCP explicitly does <em>not</em> decide — how you loop, how you pack context.
+</div>
+
+<h2>1 · What it is</h2>
+
+<p>MCP is an open protocol for connecting AI applications to external systems. The docs’ own metaphor: USB-C for AI apps.<a class="cite" href="https://modelcontextprotocol.io/introduction">[1]</a> Anthropic pointed at it in <em>Building effective agents</em> as one way to expose a well-documented tool interface to the model.<a class="cite" href="https://www.anthropic.com/engineering/building-effective-agents">[2]</a></p>
+
+<p>Participants:<a class="cite" href="https://modelcontextprotocol.io/docs/learn/architecture">[3]</a></p>
+<ul>
+<li><span class="strong">Host</span> — the AI app (Claude Desktop, VS Code, <em>your</em> harness).</li>
+<li><span class="strong">Client</span> — one connection object inside the host, per server.</li>
+<li><span class="strong">Server</span> — a process that exposes context. Local via stdio, or remote via Streamable HTTP.</li>
+</ul>
+
+<p>Two layers: a JSON-RPC <em>data</em> layer (what you can list and call) and a <em>transport</em> layer (stdio vs HTTP). You will almost always talk to an SDK, not to raw JSON-RPC. Know the nouns anyway.</p>
+
+<div class="def">
+<span class="label">MCP does not run your agent</span>
+The spec’s own note: MCP focuses on context exchange. It does not dictate how the application uses LLMs or manages the provided context. Your loop, your window, your HITL — still lessons 0002, 0004, 0012.
+</div>
+
+<h2>2 · Three primitives servers expose</h2>
+
+<table>
+<thead><tr><th>Primitive</th><th>Controlled by</th><th>Job</th></tr></thead>
+<tbody>
+<tr><td><strong>Tools</strong></td><td>The model (with optional human approval)</td><td>Actions: <code>tools/list</code>, <code>tools/call</code>. This is your ACI, standardized.</td></tr>
+<tr><td><strong>Resources</strong></td><td>The application / user</td><td>Readable context (files, schemas, records). Pointers you might fetch just-in-time (0004, 0009).</td></tr>
+<tr><td><strong>Prompts</strong></td><td>The user / UI</td><td>Reusable templates the client can surface (slash commands). Factor 2 still says: you must be able to see the rendered string.</td></tr>
+</tbody>
+</table>
+
+<p>That split is the design lesson. Not everything should be a tool. A database schema is a resource. “Write a commit message given this diff” is a prompt template. “Run the query” is a tool — and a risky one.</p>
+
+<p>Security is not free with the USB-C metaphor. A local filesystem server is a large ACI. Treat MCP servers with the same least-privilege and injection stance as any other tool (0027). Official docs have a security section for a reason.</p>
+
+<div class="interview">
+<span class="label">Interview angle</span>
+“Would you use MCP?” Strong: as a standard ACI bus when several hosts must share tools; I still own the loop and the prompt; resources vs tools vs prompts is the useful taxonomy; I would not wrap every SQL as an MCP tool. Weak: “MCP is how you build agents now.”
+</div>
+
+<h2>3 · Retrieval practice</h2>
+
+<div class="quiz">
+
+<div class="q" data-ans="2">
+<p class="qtext">1. MCP, compressed?</p>
+<label><input type="radio" name="q1"> A hosted multi-agent runtime that replaces LangGraph.</label>
+<label><input type="radio" name="q1"> A new LLM that samples JSON more reliably than GPT.</label>
+<label class="ans"><input type="radio" name="q1"> A protocol for exposing tools, resources, and prompts to hosts.</label>
+<div class="feedback ok">Correct. USB-C. The loop is still yours. The model is still someone else's API.</div>
+<div class="feedback no">Not a runtime, not a model. Protocol. Option 3.</div>
+</div>
+
+<div class="q" data-ans="0">
+<p class="qtext">2. Host vs server?</p>
+<label class="ans"><input type="radio" name="q2"> Host is the AI app; server exposes context over one client connection.</label>
+<label><input type="radio" name="q2"> Host is the GPU cluster; server is the system prompt store.</label>
+<label><input type="radio" name="q2"> They are synonyms for the same Node process.</label>
+<div class="feedback ok">Correct. VS Code is a host; it instantiates a client per server (Sentry, filesystem, …).</div>
+<div class="feedback no">Not GPUs, not synonyms. App vs context process. Option 1.</div>
+</div>
+
+<div class="q" data-ans="1">
+<p class="qtext">3. A database schema should usually be an MCP…</p>
+<label><input type="radio" name="q3"> Tool, so the model must call it every turn.</label>
+<label class="ans"><input type="radio" name="q3"> Resource — readable context, fetched when needed.</label>
+<label><input type="radio" name="q3"> Prompt — few-shot examples are the only legal form of schemas.</label>
+<div class="feedback ok">Correct. Resources are data. Tools are actions. Mixing them is how ACIs get noisy and unsafe.</div>
+<div class="feedback no">Don't force a per-turn tool call, and schemas aren't few-shot. Resource. Option 2.</div>
+</div>
+
+<div class="q" data-ans="2">
+<p class="qtext">4. Why MCP does not retire Factor 2 and 8?</p>
+<label><input type="radio" name="q4"> MCP secretly authors your system prompt on the server.</label>
+<label><input type="radio" name="q4"> The spec requires you to delete local prompts after connect.</label>
+<label class="ans"><input type="radio" name="q4"> It exchanges context; it does not own the loop or the packed window.</label>
+<div class="feedback ok">Correct. Quoted from the architecture page. USB-C does not drive the car.</div>
+<div class="feedback no">It doesn't steal your prompt. It also doesn't run your while loop. Option 3.</div>
+</div>
+
+</div>
+
+<h2>4 · Read next (primary source)</h2>
+
+<p><a href="https://modelcontextprotocol.io/introduction">MCP introduction</a>, then <a href="https://modelcontextprotocol.io/docs/learn/architecture">Architecture overview</a> — participants and primitives only. Skip SDK setup until you are building.</p>
+
+<h2>5 · Lock it in</h2>
+<ul>
+<li>Host / client / server. Tools / resources / prompts. “Does not run the loop.” Recite.</li>
+<li>New glossary terms: <em>MCP</em>, <em>MCP host</em>, <em>resource (MCP)</em>.</li>
+</ul>
+
+<p class="reminder">Out of scope to implement a server this session. If you want, later we can wrap one capstone tool as MCP just to feel list/call.</p>
+
+<nav class="lessons-nav">
+<span><a href="./0027-prompt-injection.html">← 0027 Injection</a></span>
+<span><a href="./0029-inner-vs-outer-loop.html">0029 Inner vs outer loop →</a></span>
+</nav>
+<script src="../assets/quiz.js"></script>
+</body>
+</html>

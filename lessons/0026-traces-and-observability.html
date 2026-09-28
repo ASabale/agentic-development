@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0026 — Traces and observability</title>
+<link rel="stylesheet" href="../assets/lesson.css">
+</head>
+<body>
+
+<p class="kicker">Lesson 0026 · Phase 3 depth · ~12 minutes</p>
+<h1>Traces and observability</h1>
+<p class="subtitle">If you cannot open a failed run and see every beat, you do not have an agent you can ship.</p>
+
+<div class="win">
+<strong>Your one win today</strong>
+Name the span tree of one agent run (invoke → model call → execute_tool × N → final), and list the fields you’d put on each span so a grader bug and a hijack are distinguishable.
+</div>
+
+<h2>1 · A run is a trace, not a log line</h2>
+
+<p>OpenTelemetry’s generative-AI semantic conventions (still evolving, already useful) treat an agent invocation as a span with children:<a class="cite" href="https://github.com/open-telemetry/semantic-conventions-genai/blob/main/docs/gen-ai/gen-ai-spans.md">[1]</a></p>
+<ul>
+<li><code>invoke_agent</code> — the whole job</li>
+<li>nested <code>chat</code> / generate spans — each model call, with token counts</li>
+<li>nested <code>execute_tool</code> — each harness execution, with name and (redacted) args</li>
+<li>optional <code>invoke_workflow</code> if you can tell several agents were coordinated</li>
+</ul>
+
+<p>Vendors (LangSmith, etc.) will ingest OTel. The point is not the brand. The point is: one trace id for the ticket, every beat attached, you can click a fail from eval 0013 and <em>read</em> it — the same instinct as Anthropic’s “audit the grader.”<a class="cite" href="https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents">[2]</a></p>
+
+<div class="def">
+<span class="label">Minimum viable trace</span>
+run_id, parent/child spans, model, prompt hash (not the full secret prompt in the UI if you can’t), tool name, call_id, latency, input/output/cached token counts, stop reason, error. Redact PII and secrets in args. Keep the full transcript in a store your on-call can open.
+</div>
+
+<h2>2 · What traces are for</h2>
+
+<table>
+<thead><tr><th>Question</th><th>You need</th></tr></thead>
+<tbody>
+<tr><td>Did we call the refund tool?</td><td><code>execute_tool</code> span, name, args, whether HITL approved</td></tr>
+<tr><td>Why was this slow?</td><td>TTFT vs generation vs tool wall time, per span</td></tr>
+<tr><td>Why was this expensive?</td><td>input / cached / output tokens per model call (0023, 0025)</td></tr>
+<tr><td>Did the grader lie?</td><td>The transcript the grader saw, side by side with the score</td></tr>
+<tr><td>Was this injection?</td><td>The observation that preceded the weird tool call, intact</td></tr>
+</tbody>
+</table>
+
+<p>Print debugging is not this. A 40-step run in stdout is how you lose the p95. Structure first; pretty UI later.</p>
+
+<div class="interview">
+<span class="label">Interview angle</span>
+“How do you observe agents?” Weak: “CloudWatch logs.” Strong: one trace per job, OTel gen_ai names if we can, token accounting, tool spans, redaction, eval failures deep-link to traces. Without that we cannot do 0013.
+</div>
+
+<h2>3 · Retrieval practice</h2>
+
+<div class="quiz">
+
+<div class="q" data-ans="1">
+<p class="qtext">1. The parent span of an agent job should be…</p>
+<label><input type="radio" name="q1"> One log line per token, because granularity is safety.</label>
+<label class="ans"><input type="radio" name="q1"> invoke_agent (or equivalent), with model and tool spans nested.</label>
+<label><input type="radio" name="q1"> A separate trace for each tool, never stitched together.</label>
+<div class="feedback ok">Correct. One job, one tree. Unstitched tool traces cannot explain a hijack.</div>
+<div class="feedback no">Not per-token spam, not disconnected tools. Nested tree. Option 2.</div>
+</div>
+
+<div class="q" data-ans="2">
+<p class="qtext">2. Why hash the prompt on the span instead of dumping it always?</p>
+<label><input type="radio" name="q2"> Hashes are required by the OTel spec to sample tokens.</label>
+<label><input type="radio" name="q2"> Prompts cannot be stored because they are not UTF-8.</label>
+<label class="ans"><input type="radio" name="q2"> Diff prompt versions in evals; keep secrets out of the default UI.</label>
+<div class="feedback ok">Correct. Factor 2 wants the string in git. Traces want a handle plus a locked-down store for the full text.</div>
+<div class="feedback no">Not a spec requirement, and prompts are text. Privacy + eval diffs. Option 3.</div>
+</div>
+
+<div class="q" data-ans="0">
+<p class="qtext">3. An eval fail with no trace is…</p>
+<label class="ans"><input type="radio" name="q3"> Incomplete — you cannot tell grader bug from agent bug.</label>
+<label><input type="radio" name="q3"> Fine; the boolean score is the only scientific object.</label>
+<label><input type="radio" name="q3"> Preferred, because traces bias the judge.</label>
+<div class="feedback ok">Correct. Anthropic: read transcripts. A score without a trace is a rumor.</div>
+<div class="feedback no">Scores without traces are how grader bugs live for months. Option 1.</div>
+</div>
+
+<div class="q" data-ans="2">
+<p class="qtext">4. Token fields on a generate span exist so you can…</p>
+<label><input type="radio" name="q4"> Train a billing model that predicts next week’s GPU need.</label>
+<label><input type="radio" name="q4"> Prove the vendor never caches, which is a compliance rule.</label>
+<label class="ans"><input type="radio" name="q4"> Attribute cost and TTFT to a step, not to a monthly lump.</label>
+<div class="feedback ok">Correct. 0023’s envelope becomes empirical per intent. Cache hits belong here too.</div>
+<div class="feedback no">Not a training set, not an anti-cache rule. Per-step cost. Option 3.</div>
+</div>
+
+</div>
+
+<h2>4 · Read next (primary source)</h2>
+
+<p>OpenTelemetry gen-AI spans (skim the operation names): <a href="https://github.com/open-telemetry/semantic-conventions-genai/blob/main/docs/gen-ai/gen-ai-spans.md">gen-ai-spans.md</a>. You do not need to implement OTel today; you need the vocabulary.</p>
+
+<h2>5 · Lock it in</h2>
+<ul>
+<li>One tree per job. Tools as children. Tokens on generate spans. Recite.</li>
+<li>New glossary terms: <em>trace</em>, <em>span</em>, <em>execute_tool</em>.</li>
+</ul>
+
+<p class="reminder">Capstone (0020) requires dumped transcripts. This lesson is why. When we build, traces come before a dashboard.</p>
+
+<nav class="lessons-nav">
+<span><a href="./0025-prompt-caching.html">← 0025 Caching</a></span>
+<span><a href="./0027-prompt-injection.html">0027 Prompt injection →</a></span>
+</nav>
+<script src="../assets/quiz.js"></script>
+</body>
+</html>

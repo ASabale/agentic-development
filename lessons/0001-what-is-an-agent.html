@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0001 — What is an agent?</title>
+<link rel="stylesheet" href="../assets/lesson.css">
+</head>
+<body>
+
+<h1>What is an agent?</h1>
+<p class="subtitle">Lesson 0001 · Phase 1: Foundations · ~10 minutes</p>
+
+<p><strong>Your one win today:</strong> by the end of this page you can state the field's consensus definition of an agent from memory, and classify any system as <em>agent</em> or <em>workflow</em> — the single most common opening question in agentic-systems interviews.</p>
+
+<h2>1 · The one-sentence definition</h2>
+
+<div class="def">
+<span class="label">Consensus definition</span>
+An LLM agent <strong>runs tools in a loop to achieve a goal</strong>.
+<a class="cite" href="https://simonwillison.net/2025/Sep/18/agents/">[Willison 2025]</a>
+</div>
+
+<p>That sentence compressed two years of industry argument into one line.<a class="cite" href="https://simonwillison.net/2025/Sep/18/agents/">[1]</a> Unpack it word by word, because every later phase of this course hangs off one of these terms:</p>
+
+<ul>
+<li><strong>An LLM</strong> — a large language model (Claude, GPT, Gemini…). The <em>brain</em>. It produces text; more precisely, it produces a decision about what to do next.</li>
+<li><strong>Tools</strong> — functions <em>your code</em> can execute: search the web, read a file, call an API, run SQL. The model cannot touch the world directly; it can only <em>ask</em> for a tool to be run. Tools are the <em>hands</em>.</li>
+<li><strong>In a loop</strong> — the model's request is executed, the result is shown back to the model, and the model decides what happens next. This cycle — decide → act → observe → decide — repeats. The loop is the <em>habit</em>.</li>
+<li><strong>To achieve a goal</strong> — the loop has a stopping condition. Agents are not infinite loops: they run until the model believes the job is done.<a class="cite" href="https://simonwillison.net/2025/Sep/18/agents/">[1]</a> The goal is the <em>job description</em>.</li>
+</ul>
+
+<div class="def">
+<span class="label">Mental model</span>
+<strong>Agent = brain + hands + habit + job description.</strong> An LLM, given tools, run in a loop, until a goal is met.
+</div>
+
+<figure class="aid">
+<img src="../assets/figures/agent-parts.svg" alt="Four boxes: LLM the brain, tools the hands, loop the habit, goal the job.">
+<figcaption>The same four words as the definition, as a picture. Weng’s survey treats memory, planning, and tools as upgrades on this core.<a class="cite" href="https://lilianweng.github.io/posts/2023-06-23-agent/">[2]</a></figcaption>
+</figure>
+
+<p>Everything else in this field — memory, planning, guardrails, multi-agent systems, evaluation — is a variation or an upgrade on one of those four parts.</p>
+
+<h2>2 · Agent vs. workflow — the line that matters</h2>
+
+<p>Anthropic makes a clean distinction that the industry has converged on:<a class="cite" href="https://www.anthropic.com/engineering/building-effective-agents">[3]</a></p>
+
+<div class="def">
+<span class="label">Workflow</span>
+LLMs and tools orchestrated through <strong>predefined code paths</strong>. Your code decides the order of steps.
+</div>
+<div class="def">
+<span class="label">Agent</span>
+The LLM <strong>dynamically directs its own process</strong> and tool usage — your code maintains the loop, but the model chooses the path.
+</div>
+
+<p>The test is one question: <strong>who is picking the next step — the programmer, or the model?</strong> A pipeline that runs summarize → translate → email in a fixed order is a workflow, even if every step uses an LLM. A bot that reads a support ticket, decides to look up the account, decides whether to issue a refund, and then drafts a reply is an agent, because the model chose those steps at runtime.</p>
+
+<p>This distinction is not pedantry — it is a cost/reliability trade-off. Anthropic's first advice: <em>find the simplest solution possible, and only increase complexity when it demonstrably helps.</em><a class="cite" href="https://www.anthropic.com/engineering/building-effective-agents">[3]</a> Agents trade your control flow for the model's flexibility, and you pay for it in latency, cost, and failure modes. Practitioners who have shipped agents emphasize that many problems people reach for an agent to solve were scripts all along.<a class="cite" href="https://github.com/humanlayer/12-factor-agents">[4]</a></p>
+
+<div class="interview">
+<span class="label">Interview angle</span>
+"How would you decide whether a use case needs an agent?" The strong answer: <em>default to a workflow; reach for an agent only when the task's steps can't be enumerated in advance — when the path depends on what you discover along the way.</em> Name the cost: agents burn tokens, latency, and reliability for that flexibility.<a class="cite" href="https://github.com/humanlayer/12-factor-agents">[4]</a>
+</div>
+
+<h2>3 · Why start here</h2>
+
+<p>This definition is the trunk of the whole course: tool design (Phase 2) is about engineering the hands; reasoning and the loop (Phase 2) refine the habit; guardrails and human-in-the-loop (Phase 3) constrain the job description; multi-agent systems (Phase 4) just connect several brains. Check the <a href="../ROADMAP.md">roadmap</a> to see where we're headed.</p>
+
+<h2>4 · Retrieval practice</h2>
+
+<p>Close this page's top two sections mentally, then answer without scrolling up. Four questions; you get instant feedback. Getting these from memory — not re-reading — is what makes it stick.</p>
+
+<div class="quiz">
+
+<div class="q" data-ans="1">
+<p class="qtext">1. Which one of these systems is an agent?</p>
+<label><input type="radio" name="q1"> A single LLM call drafting a reply from one prompt.</label>
+<label class="ans"><input type="radio" name="q1"> An LLM choosing its tools in a loop until done.</label>
+<label><input type="radio" name="q1"> One fixed pipeline running three scripted LLM calls nightly.</label>
+<div class="feedback ok">Correct. Tool choice + loop + self-decided stopping = agent. The other two involve LLMs, but a human hardwired their path.</div>
+<div class="feedback no">Not quite. LLM involvement is necessary but not sufficient — the agent answer needs model-chosen tool use in a loop. Option 2.</div>
+</div>
+
+<div class="q" data-ans="1">
+<p class="qtext">2. Anthropic's dividing line: what makes a system <em>agentic</em> rather than a workflow?</p>
+<label><input type="radio" name="q2"> Agents always need two models; workflows need just one model.</label>
+<label class="ans"><input type="radio" name="q2"> Workflows follow prewritten code paths; agents pick their own paths.</label>
+<label><input type="radio" name="q2"> Workflows are what small teams use; agents need big infra.</label>
+<div class="feedback ok">Correct. Programmed control flow = workflow. Model-directed control flow = agent. One model is plenty for either.</div>
+<div class="feedback no">It's about control flow, not model count or team size: workflows follow code you wrote; the agent's model picks the path. Option 2.</div>
+</div>
+
+<div class="q" data-ans="2">
+<p class="qtext">3. Complete the field's consensus definition: an LLM agent…</p>
+<label><input type="radio" name="q3"> hides a single large model call behind silent server retries.</label>
+<label><input type="radio" name="q3"> runs exactly one tool inside each loop then immediately stops.</label>
+<label class="ans"><input type="radio" name="q3"> runs tools inside a loop to achieve one goal.</label>
+<div class="feedback ok">Correct — Willison's line: "runs tools in a loop to achieve a goal." Note "a goal": the stopping condition is part of the definition.</div>
+<div class="feedback no">Say it raw: tools, loop, goal. An agent "runs tools inside a loop to achieve one goal" — retries aren't the point, and one-tool-per-loop is a limitation nobody imposed.</div>
+</div>
+
+<div class="q" data-ans="2">
+<p class="qtext">4. A support bot reads a ticket, calls a lookup tool for the account, applies refund policy, then drafts a reply. The model decides at runtime whether to look up, whether to refund, and when it's done. Agent or workflow?</p>
+<label><input type="radio" name="q4"> Workflow — three tool calls means the path is scripted.</label>
+<label><input type="radio" name="q4"> Unknowable — you cannot tell without seeing the framework source.</label>
+<label class="ans"><input type="radio" name="q4"> Agent — the model itself is choosing every next step.</label>
+<div class="feedback ok">Correct. It doesn't matter that only three tools exist or which framework runs it — the model is directing its own process at runtime.</div>
+<div class="feedback no">Re-read the scenario's last sentence: the model decides the steps at runtime. That is the whole test — framework and tool count are irrelevant.</div>
+</div>
+
+</div>
+
+<h2>5 · Read next (primary source)</h2>
+
+<p><a href="https://www.anthropic.com/engineering/building-effective-agents">Anthropic — <em>Building effective agents</em></a> (Dec 2024). Read the sections "What are agents?" and "When to use agents". ~15 minutes; it is the source this lesson compresses. Optional companion: <a href="https://simonwillison.net/2025/Sep/18/agents/">Simon Willison on how the definition converged</a> (5 min).</p>
+
+<h2>6 · Lock it in</h2>
+
+<ul>
+<li>Say the definition out loud, unprompted: <em>an LLM agent is ___ ___ ___ ___.</em></li>
+<li>Bookmark the <a href="../reference/glossary.html">glossary</a> — today's five terms live there; it grows every lesson and is your revision sheet.</li>
+<li>Recall drill for before lesson 0002: without opening this page, write Brain / Hands / Habit / Job description on paper, and name one production reason to prefer a workflow over an agent.</li>
+</ul>
+
+<p class="reminder">Stuck on anything — a term, a question you got wrong, why tools can't just be part of the model — ask me in chat. That's what I'm here for; probing at the edges is exactly the point.</p>
+
+<nav class="lessons-nav">
+<span><a href="../ROADMAP.md">← Roadmap</a> · <a href="../reference/glossary.html">Glossary</a></span>
+<span><a href="./0002-tools-in-a-loop.html">0002 Tools in a loop →</a></span>
+</nav>
+
+<script src="../assets/quiz.js"></script>
+</body>
+</html>

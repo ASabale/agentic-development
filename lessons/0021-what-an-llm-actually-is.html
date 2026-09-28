@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0021 — What an LLM actually is</title>
+<link rel="stylesheet" href="../assets/lesson.css">
+</head>
+<body>
+
+<p class="kicker">Lesson 0021 · Phase 1 depth · ~12 minutes</p>
+<h1>What an LLM actually is</h1>
+<p class="subtitle">A next-token engine. Not a database, not an agent, not a mind. The substrate under every later lesson.</p>
+
+<div class="win">
+<strong>Your one win today</strong>
+Explain, without mysticism, what happens in one API call: tokens in, a distribution over the next token, sample, repeat. Then name three things that are <em>not</em> in that picture (memory, tools, truth).
+</div>
+
+<h2>1 · Completion is the only primitive</h2>
+
+<p>Willison’s teaching version is the right altitude:<a class="cite" href="https://simonwillison.net/guides/agentic-engineering-patterns/how-coding-agents-work/">[1]</a> a Large Language Model completes a sequence. Give it “the cat sat on the ” and it almost certainly continues “mat.” Modern models complete more interesting prefixes — a function, a plan, a JSON object that happens to look like a tool call.</p>
+
+<p>They do not work in words. Text is mapped to integer <span class="strong">tokens</span> (subword pieces). “the cat sat on the ” is six integers, not five words. You can watch this at <a href="https://platform.openai.com/tokenizer">OpenAI’s tokenizer</a>. Billing, rate limits, and the context window are all in these integers.</p>
+
+<div class="def">
+<span class="label">One forward pass</span>
+The model reads the whole current token sequence, produces a probability distribution over the next token, a <strong>sampler</strong> picks one (greedy, temperature, top-p), that token is appended, and the process repeats until a stop token or a token cap. That is generation. Everything branded “chat” or “agent” is this loop plus your code.
+</div>
+
+<h2>2 · Chat is a costume on completion</h2>
+
+<p>Early models were raw completion engines. Chat models wrap the same engine in a <span class="strong">chat template</span>: reserved markers for <code>system</code>, <code>user</code>, <code>assistant</code>, and now tool-call blocks. Under the template it is still “complete this string.”<a class="cite" href="https://simonwillison.net/guides/agentic-engineering-patterns/how-coding-agents-work/">[1]</a></p>
+
+<p>The model is <strong>stateless</strong>. It does not remember the last HTTP request. The harness resends the transcript every time (lesson 0004). “Memory,” “tools,” and “personality” are not weights doing extra jobs. They are tokens you chose to put in the prefix, plus code you run when the completion looks like a function call.</p>
+
+<h2>3 · Three things people smuggle in</h2>
+
+<table>
+<thead><tr><th>Slogan</th><th>What is actually true</th></tr></thead>
+<tbody>
+<tr><td>“The model knows our wiki.”</td><td>Only if the wiki (or a chunk of it) is in the window this call, or was in the training data — which is stale, uncited, and not a permission boundary.</td></tr>
+<tr><td>“The model decided to refund.”</td><td>It emitted JSON. Your harness refunded, or did not (lessons 0002, 0011).</td></tr>
+<tr><td>“The model is thinking.”</td><td>It is sampling tokens that look like reasoning. Useful (CoT, lesson 0006). Not a separate faculty with access to extra facts.</td></tr>
+</tbody>
+</table>
+
+<p>This is why agent design is mostly <em>context engineering and harness design</em>, not model-whispering. You cannot give the model a new sense. You can give it tokens and tools.</p>
+
+<div class="interview">
+<span class="label">Interview angle</span>
+“What is an LLM, really?” Weak: “it’s like a brain.” Strong: next-token model over a finite window; chat/tools are a template and a parser; state lives in the harness; truth is not a sampling feature. Then pivot to why that makes the five-beat loop inevitable.
+</div>
+
+<h2>4 · Retrieval practice</h2>
+
+<div class="quiz">
+
+<div class="q" data-ans="1">
+<p class="qtext">1. The only primitive an LLM API gives you is…</p>
+<label><input type="radio" name="q1"> A durable session object that stores facts between HTTP calls.</label>
+<label class="ans"><input type="radio" name="q1"> Completion: sample the next tokens given a prefix.</label>
+<label><input type="radio" name="q1"> A permissioned RPC bus that runs your functions in their GPU.</label>
+<div class="feedback ok">Correct. Tokens in, tokens out. Sessions, tools, and memory are your code around that primitive.</div>
+<div class="feedback no">No durable session in the weights, no RPC on their GPU (client tools). Completion. Option 2.</div>
+</div>
+
+<div class="q" data-ans="2">
+<p class="qtext">2. A chat transcript feels like memory because…</p>
+<label><input type="radio" name="q2"> Chat models have a hidden recurrent state the API keeps warm.</label>
+<label><input type="radio" name="q2"> Each user message fine-tunes the model before the reply.</label>
+<label class="ans"><input type="radio" name="q2"> The harness resends the whole transcript as the next prefix.</label>
+<div class="feedback ok">Correct. Lesson 0004. Stateless function, replayed window. That is the trick.</div>
+<div class="feedback no">No hidden session tensor, no per-turn fine-tune. Replay. Option 3.</div>
+</div>
+
+<div class="q" data-ans="0">
+<p class="qtext">3. “The model knows it is 14°C in Paris” is true only if…</p>
+<label class="ans"><input type="radio" name="q3"> That fact is in this prefix, or was in training (stale, uncited).</label>
+<label><input type="radio" name="q3"> You enabled the weather feature flag on the vendor dashboard.</label>
+<label><input type="radio" name="q3"> Any model above 70B parameters streams live telemetry.</label>
+<div class="feedback ok">Correct. No flag, no telemetry. In the window this call, or maybe in the weights — which is not a product feature.</div>
+<div class="feedback no">Dashboards and parameter counts do not fetch weather. Option 1.</div>
+</div>
+
+<div class="q" data-ans="2">
+<p class="qtext">4. Why this lesson sits under agents, not under ML theory?</p>
+<label><input type="radio" name="q4"> You must derive attention by hand before writing a harness.</label>
+<label><input type="radio" name="q4"> Sampling temperature is the main lever of tool reliability.</label>
+<label class="ans"><input type="radio" name="q4"> Agents are this primitive plus a harness — not a new kind of model.</label>
+<div class="feedback ok">Correct. Mission out-of-scope: transformer internals. In-scope: do not mystify the brain. Design the loop.</div>
+<div class="feedback no">You don't need backprop, and temperature is not ACI. Agents = completion + harness. Option 3.</div>
+</div>
+
+</div>
+
+<h2>5 · Read next (primary source)</h2>
+
+<p>Willison, <a href="https://simonwillison.net/guides/agentic-engineering-patterns/how-coding-agents-work/">How coding agents work</a> — the “Large Language Models” and “Chat templated prompts” sections (~8 min). Skip the rest; you already have the loop from 0002.</p>
+
+<h2>6 · Lock it in</h2>
+<ul>
+<li>Say: “next token, finite window, no tools in the weights.”</li>
+<li>New glossary terms: <em>token</em> (deepen), <em>completion</em>, <em>sampler</em>, <em>chat template</em>.</li>
+</ul>
+
+<p class="reminder">If “sampling” still feels like a magic word, ask. We can walk temperature vs greedy with a three-token example and then stop — this is not a math course.</p>
+
+<nav class="lessons-nav">
+<span><a href="./0004-context-as-working-memory.html">← 0004 Context</a></span>
+<span><a href="./0022-system-prompts-and-roles.html">0022 System prompts →</a></span>
+</nav>
+<script src="../assets/quiz.js"></script>
+</body>
+</html>

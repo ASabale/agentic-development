@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0011 — Structured outputs</title>
+<link rel="stylesheet" href="../assets/lesson.css">
+</head>
+<body>
+
+<p class="kicker">Lesson 0011 · Phase 3: Production · ~10 minutes</p>
+<h1>Structured outputs</h1>
+<p class="subtitle">A tool call is JSON your code decides how to run. Schema-valid is not truth.</p>
+
+<div class="win">
+<strong>Your one win today</strong>
+Distinguish JSON mode from Structured Outputs, and treat every tool call as <em>structured intent</em> — not a remote procedure the model is allowed to invoke.
+</div>
+
+<h2>1 · Tools are just structured outputs</h2>
+
+<p>12-factor Factor 4, in one sentence: asking a model to “use a tool” is asking it to emit JSON you can parse into an object. Deterministic code then does something with that object. The model does not get a file descriptor.<a class="cite" href="https://github.com/humanlayer/12-factor-agents/blob/main/content/factor-04-tools-are-structured-outputs.md">[1]</a></p>
+
+<pre><code>class CreateIssue:
+    intent: "create_issue"
+    title: str
+    team_id: str
+
+# model emits JSON matching that shape
+# your switch statement decides whether — and how — to call Jira</code></pre>
+
+<p>That switch is the whole point. You may refuse. You may ask a human. You may remap fields. You may no-op. “The model called <code>create_issue</code>” is not “Jira now contains an issue.” Factor 8 (own your control flow) is this switch statement grown up.<a class="cite" href="https://github.com/humanlayer/12-factor-agents/blob/main/content/factor-08-own-your-control-flow.md">[2]</a></p>
+
+<h2>2 · JSON mode is not a schema</h2>
+
+<p>Three rungs, easy to mash in interviews:<a class="cite" href="https://developers.openai.com/api/docs/guides/structured-outputs">[3]</a></p>
+<table>
+<thead><tr><th>Rung</th><th>Guarantees</th><th>Does not guarantee</th></tr></thead>
+<tbody>
+<tr><td>Prompt “reply in JSON”</td><td>Nothing</td><td>Valid JSON, or the right keys</td></tr>
+<tr><td>JSON mode</td><td>The output is valid JSON (with listed edge cases)</td><td>That it matches <em>your</em> schema</td></tr>
+<tr><td>Structured Outputs (<code>strict: true</code> / <code>json_schema</code>)</td><td>The output matches the supplied JSON Schema</td><td>That the values are true, safe, or wise</td></tr>
+</tbody>
+</table>
+
+<p>OpenAI: Structured Outputs “ensures the model will always generate responses that adhere to your supplied JSON Schema.” Unlike JSON mode, it constrains <em>shape</em>, not only validity.<a class="cite" href="https://developers.openai.com/api/docs/guides/structured-outputs">[3]</a> It still cannot stop a schema-valid refund of the wrong order. Constraints are syntactic. Semantics stay your problem — with evals (0013) and guardrails (0012).</p>
+
+<p>Handle the remaining holes: refusals, truncated outputs at token limits, unsupported schema features in strict mode. Production code never <code>json.loads</code> blindly.</p>
+
+<div class="interview">
+<span class="label">Interview angle</span>
+“How do you make tool calls reliable?” Strong: schema as contract, Structured Outputs / strict decoding for shape, a harness switch that can refuse or interrupt, compact errors on parse failure, never equate valid JSON with a correct action.
+</div>
+
+<h2>3 · Retrieval practice</h2>
+
+<div class="quiz">
+
+<div class="q" data-ans="2">
+<p class="qtext">1. Factor 4’s punchline is that a tool call is…</p>
+<label><input type="radio" name="q1"> A kernel syscall the model is sandboxed to run itself.</label>
+<label><input type="radio" name="q1"> A promise the provider executes before returning tokens.</label>
+<label class="ans"><input type="radio" name="q1"> Structured intent; your code chooses whether to honor it.</label>
+<div class="feedback ok">Correct. JSON in, deterministic code out — or not. The model never held the credential.</div>
+<div class="feedback no">The model cannot syscall, and the provider does not run your function (client tools). Option 3.</div>
+</div>
+
+<div class="q" data-ans="0">
+<p class="qtext">2. JSON mode vs Structured Outputs?</p>
+<label class="ans"><input type="radio" name="q2"> JSON mode: valid JSON. Structured Outputs: matches your schema.</label>
+<label><input type="radio" name="q2"> JSON mode: matches schema. Structured Outputs: valid JSON only.</label>
+<label><input type="radio" name="q2"> They are two names for the same tokenizer flag on GPT-4.</label>
+<div class="feedback ok">Correct. Shape vs mere validity. Cite OpenAI's Structured Outputs guide if asked.</div>
+<div class="feedback no">Do not reverse them, and they are not the same flag. Option 1.</div>
+</div>
+
+<div class="q" data-ans="1">
+<p class="qtext">3. A strict-schema refund call for order_id=999 (the wrong order) is…</p>
+<label><input type="radio" name="q3"> Impossible; Structured Outputs verifies against your database.</label>
+<label class="ans"><input type="radio" name="q3"> Schema-valid and still wrong; the harness must guard semantics.</label>
+<label><input type="radio" name="q3"> Proof the schema is unused, because a valid call cannot be wrong.</label>
+<div class="feedback ok">Correct. Syntax ≠ truth. Guardrails and HITL exist for this row of the table.</div>
+<div class="feedback no">Strict mode does not query your DB. Valid can be wrong. Option 2.</div>
+</div>
+
+<div class="q" data-ans="2">
+<p class="qtext">4. Why own the switch on <code>intent</code> rather than auto-dispatch?</p>
+<label><input type="radio" name="q4"> Models cannot emit more than one key, so a switch is required.</label>
+<label><input type="radio" name="q4"> JSON parsers only work inside a named switch in Python 3.12.</label>
+<label class="ans"><input type="radio" name="q4"> So you can refuse, pause, remap, or ask a human per intent.</label>
+<div class="feedback ok">Correct. That flexibility is Factor 4 meeting Factor 8. Auto-dispatch is how agents “just yolo” high-stakes tools.</div>
+<div class="feedback no">Nothing about parsers or keys forces a switch. Control flow does. Option 3.</div>
+</div>
+
+</div>
+
+<h2>4 · Read next (primary source)</h2>
+
+<p><a href="https://github.com/humanlayer/12-factor-agents/blob/main/content/factor-04-tools-are-structured-outputs.md">12-Factor — Factor 4</a> (short). Then OpenAI, <a href="https://developers.openai.com/api/docs/guides/structured-outputs">Structured Outputs</a> — the JSON-mode contrast paragraph is the bit to memorize.</p>
+
+<h2>5 · Lock it in</h2>
+<ul>
+<li>Say: “valid JSON ≠ matching schema ≠ true ≠ executed.”</li>
+<li>New glossary terms: <em>JSON mode</em>, <em>Structured Outputs</em>, <em>strict mode</em> (already in 0005; attach this distinction).</li>
+</ul>
+
+<p class="reminder">If an SDK you’re looking at auto-executes tool calls, ask. We can locate the switch you’d insert.</p>
+
+<nav class="lessons-nav">
+<span><a href="./0010-rag-for-agents.html">← 0010 RAG</a></span>
+<span><a href="./0012-guardrails-and-hitl.html">0012 Guardrails and HITL →</a></span>
+</nav>
+<script src="../assets/quiz.js"></script>
+</body>
+</html>

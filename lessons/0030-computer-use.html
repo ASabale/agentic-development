@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0030 — Computer use</title>
+<link rel="stylesheet" href="../assets/lesson.css">
+</head>
+<body>
+
+<p class="kicker">Lesson 0030 · Phase 4 depth · ~10 minutes</p>
+<h1>Computer use</h1>
+<p class="subtitle">Screenshots in, mouse events out. Still the five beats. A much larger ACI.</p>
+
+<div class="win">
+<strong>Your one win today</strong>
+Map computer-use onto lesson 0002: the model never drives the OS; it emits actions or a script; your environment executes and returns a screenshot. Then name why this ACI is high-risk.
+</div>
+
+<h2>1 · Same loop, visual observations</h2>
+
+<p>OpenAI’s computer-use guide: you provide the environment and execute the model’s requests. The model uses screenshots and other tool results to decide what to do next.<a class="cite" href="https://developers.openai.com/api/docs/guides/tools-computer-use">[1]</a> Two shapes they now document:</p>
+<div class="split">
+  <div>
+    <h3>Computer tool</h3>
+    <p>Structured actions: click, type, scroll, screenshot, … Your harness maps them onto Playwright or OS events. One action (or a short batch) per beat.</p>
+  </div>
+  <div>
+    <h3>Code execution</h3>
+    <p>A function tool that accepts a script (PyAutoGUI, Playwright). One call can loop. Still your sandbox; still your screenshot back to the model. Recommended on their newest models.</p>
+  </div>
+</div>
+
+<p>Multimodal tokens (lesson 0021) are how a screenshot enters the window: images become tokens, same as text. They are expensive and they rot like anything else. Keep the same browser/VM session across calls so the model is not staring at a fresh boot every beat.<a class="cite" href="https://developers.openai.com/api/docs/guides/tools-computer-use">[1]</a></p>
+
+<div class="def">
+<span class="label">Still not an agent product</span>
+Computer use is an ACI: a way to ground actions in a GUI when no API exists. You still need a goal, a stop, HITL on anything that can spend or send, and a sandbox that cannot see prod credentials. Willison’s “ChatGPT agent” (a branded browser) is this pattern, and it is still tools-in-a-loop.
+<a class="cite" href="https://simonwillison.net/2025/Sep/18/agents/">[2]</a>
+</div>
+
+<h2>2 · Why the blast radius jumps</h2>
+
+<ul>
+<li>The tool surface is “whatever the GUI can do,” which is the opposite of a poka-yoke schema (0005).</li>
+<li>Injection now includes pixels: on-screen text is an observation (0027).</li>
+<li>Screenshots are huge observations — context rot (0004) arrives in three turns.</li>
+<li>You need a real sandbox (browser profile, VM). This is where “the API does not execute” is life-or-death.</li>
+</ul>
+
+<p>Prefer an API tool if one exists. Computer use is the residue — the vendor with no API, the one flow you must click. Cap steps. Watch traces as video-of-spans, not as hope.</p>
+
+<div class="interview">
+<span class="label">Interview angle</span>
+“Should we let the agent drive the admin UI?” Strong: only if no API; sandbox; screenshot budget; HITL on submit; treat on-screen copy as untrusted. Weak: “vision models are good now, so yes.”
+</div>
+
+<h2>3 · Retrieval practice</h2>
+
+<div class="quiz">
+
+<div class="q" data-ans="1">
+<p class="qtext">1. Who moves the mouse?</p>
+<label><input type="radio" name="q1"> The model, via a privileged USB channel the API opens.</label>
+<label class="ans"><input type="radio" name="q1"> Your environment, executing actions or a script the model emitted.</label>
+<label><input type="radio" name="q1"> OpenAI’s data center, because screenshots imply they host the VM.</label>
+<div class="feedback ok">Correct. Same split as 0002. You provide the environment. They sample tokens.</div>
+<div class="feedback no">No USB, and they do not host your desktop unless you built that. Option 2.</div>
+</div>
+
+<div class="q" data-ans="2">
+<p class="qtext">2. Computer use vs a <code>refund(order_id)</code> tool?</p>
+<label><input type="radio" name="q2"> Computer use is safer, because GUIs have confirm modals.</label>
+<label><input type="radio" name="q2"> They are identical ACIs; only the transport differs (pixels vs JSON).</label>
+<label class="ans"><input type="radio" name="q2"> A named refund tool is poka-yoke; a GUI tool can click anything.</label>
+<div class="feedback ok">Correct. Prefer the narrow API. Computer use is residual surface area.</div>
+<div class="feedback no">Modals are not a harness. Pixels vs JSON is not “identical safety.” Option 3.</div>
+</div>
+
+<div class="q" data-ans="0">
+<p class="qtext">3. Screenshots belong in the window as…</p>
+<label class="ans"><input type="radio" name="q3"> Multimodal tokens — costly observations that rot like text.</label>
+<label><input type="radio" name="q3"> A side-channel the model OCRs in a separate hidden model.</label>
+<label><input type="radio" name="q3"> Files the model cannot see unless you also paste ASCII art.</label>
+<div class="feedback ok">Correct. Vision tokens in the same prefix. Budget them. Willison: not a separate OCR pipeline in the usual case.</div>
+<div class="feedback no">Usually not a hidden OCR model, and the model *can* see the image tokens. Option 1.</div>
+</div>
+
+<div class="q" data-ans="2">
+<p class="qtext">4. First extra control vs a normal tool loop?</p>
+<label><input type="radio" name="q4"> Disable HITL, because GUIs are too fast for humans.</label>
+<label><input type="radio" name="q4"> Run it against prod so observations are realistic.</label>
+<label class="ans"><input type="radio" name="q4"> A sandbox (browser/VM) that cannot reach prod secrets.</label>
+<div class="feedback ok">Correct. Execution environment is the product. Prod-connected computer use is a nightmare ACI.</div>
+<div class="feedback no">Keep HITL; keep prod away. Sandbox. Option 3.</div>
+</div>
+
+</div>
+
+<h2>4 · Read next (primary source)</h2>
+
+<p><a href="https://developers.openai.com/api/docs/guides/tools-computer-use">OpenAI — Computer use</a>. Read the opening (“you provide the environment”) and the two integration shapes. Skip the recipe code unless you are implementing.</p>
+
+<h2>5 · Lock it in</h2>
+<ul>
+<li>Five beats + screenshots. Prefer APIs. Sandbox. Recite.</li>
+<li>New glossary terms: <em>computer use</em>, <em>multimodal tokens</em>.</li>
+<li>This is the last depth lesson for now. Capstone still waits on you picking a job in 0020.</li>
+</ul>
+
+<p class="reminder">Computer use is out of capstone scope unless you argue for it. Default no. Ask if a GUI-only vendor is tempting you.</p>
+
+<nav class="lessons-nav">
+<span><a href="./0029-inner-vs-outer-loop.html">← 0029 Inner vs outer</a></span>
+<span><a href="../syllabus.html">Syllabus →</a></span>
+</nav>
+<script src="../assets/quiz.js"></script>
+</body>
+</html>

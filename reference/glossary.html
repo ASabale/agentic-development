@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Glossary — Agentic Applications</title>
+<link rel="stylesheet" href="../assets/lesson.css">
+</head>
+<body>
+
+<p class="kicker">Reference · print this</p>
+<h1>Glossary</h1>
+<p class="subtitle">Canonical vocabulary. Every lesson uses these terms exactly as defined here.</p>
+
+<h2>A</h2>
+<p><span class="strong">ACI (agent–computer interface).</span> The contract a model can see: tool names, descriptions, and JSON schemas. Analogous to HCI; sloppy ACI yields sloppy calls. <a class="cite" href="https://www.anthropic.com/engineering/building-effective-agents">[Anthropic 2024]</a></p>
+<p><span class="strong">Agent (LLM agent).</span> A system in which an LLM runs <span class="strong">tools in a loop to achieve a goal</span> — the model dynamically chooses its next action based on results so far, and decides when it is done. <a class="cite" href="https://simonwillison.net/2025/Sep/18/agents/">[Willison 2025]</a> <a class="cite" href="https://www.anthropic.com/engineering/building-effective-agents">[Anthropic 2024]</a></p>
+<p><span class="strong">Agent loop.</span> The recurring cycle: model produces output → if the output requests a tool, the harness executes it and appends the result → repeat until a final answer, a cap, or a human interrupt. Also called the <em>tools-in-a-loop</em> pattern. See <a href="./agent-loop.html">the one-pager</a>.</p>
+<p><span class="strong">Agentic retrieval.</span> Retrieval implemented as a search/read tool inside the loop, rather than a single pre-retrieve stuffed into the prompt.</p>
+<p><span class="strong">Augmented LLM.</span> An LLM enhanced with retrieval, tools, and memory. All agents are augmented LLMs plus a model-directed loop. <a class="cite" href="https://www.anthropic.com/engineering/building-effective-agents">[Anthropic 2024]</a></p>
+
+<h2>B</h2>
+<p><span class="strong">BM25.</span> A classical keyword ranking function. First-class in hybrid search; not obsolete because embeddings exist.</p>
+
+<h2>C</h2>
+<p><span class="strong">Cached input tokens.</span> Prefix tokens billed at the cache-hit rate because the provider reused KV state. Requires an identical rendered prefix. <a class="cite" href="https://developers.openai.com/api/docs/guides/prompt-caching">[OpenAI]</a></p>
+<p><span class="strong">Chat template.</span> The reserved markers that turn a raw completion model into a conversation (system / user / assistant / tool roles). Still next-token completion underneath.</p>
+<p><span class="strong">Completion.</span> The only LLM primitive: sample the next tokens given a prefix, until stop.</p>
+<p><span class="strong">Computer use.</span> ACI in which observations are screenshots (multimodal tokens) and actions are mouse/keyboard events or a sandbox script. Same five-beat loop; much larger blast radius. <a class="cite" href="https://developers.openai.com/api/docs/guides/tools-computer-use">[OpenAI]</a></p>
+<p><span class="strong">Capability eval.</span> An eval that asks whether a change made the agent better at the hard things. Contrast <em>regression eval</em>.</p>
+<p><span class="strong">Chain of thought (CoT).</span> Intermediate natural-language reasoning steps that lead to an answer. In Wei et al. 2022, elicited by few-shot exemplars of the form ⟨input, chain, output⟩. <a class="cite" href="https://arxiv.org/abs/2201.11903">[Wei et al. 2022]</a></p>
+<p><span class="strong">Checkpointer.</span> Runtime persistence of graph/agent state between steps, so a process can crash or pause and resume. The usual reason to buy a framework.</p>
+<p><span class="strong">Chunking.</span> Splitting a corpus into indexable pieces. The standard RAG failure: chunks lose the surrounding context they need to be understood.</p>
+<p><span class="strong">Compaction.</span> Lossy summarization of older context to free window space. In-session. Not a substitute for cross-session handoff artifacts.</p>
+<p><span class="strong">Context engineering.</span> Curating the tokens in the window: prompts, tool schemas, retrieved docs, history, memory slices, output-shape instructions. Factor 3: “here’s what happened; what’s next?”</p>
+<p><span class="strong">Context isolation.</span> Giving a subagent its own window so one branch cannot poison another. The mechanism behind much of multi-agent’s gain.</p>
+<p><span class="strong">Context rot.</span> Recall quality degrades as the window fills, before the hard token cap.</p>
+<p><span class="strong">Context window.</span> The finite token sequence the model attends to in one call. If a fact is not in the window, the model does not know it. Working memory.</p>
+<p><span class="strong">Contextual retrieval.</span> Anthropic’s fix for chunking: prepend chunk-specific context before embedding and before BM25. Reported 49% fewer retrieval failures (67% with rerank). <a class="cite" href="https://www.anthropic.com/engineering/contextual-retrieval">[Anthropic]</a></p>
+
+<h2>D</h2>
+<p><span class="strong">Decomposition.</span> Breaking a task into subgoals a small agent can finish. A planning move and a context strategy (Factor 10).</p>
+
+<h2>E</h2>
+<p><span class="strong">Early victory.</span> Failure mode: the agent declares the job done while invariants (tests, policy) still fail. Fix in the harness (verify-before-exit), not only in the prompt.</p>
+<p><span class="strong">Episodic memory.</span> Store of past-trial critiques or events, re-injected into a later trial (Reflexion’s buffer).</p>
+<p><span class="strong">Eval.</span> Give an AI a task (often with an environment), run it, apply grading logic to the result — and, for agents, to the trajectory and the world it left. <a class="cite" href="https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents">[Anthropic]</a></p>
+<p><span class="strong">Evaluator–optimizer.</span> Workflow: one LLM generates, another critiques against criteria, loop until accept. Only when feedback actually improves the next draft.</p>
+<p><span class="strong">Exemplar.</span> A worked example in a prompt (few-shot). Wei et al.’s CoT method.</p>
+
+<h2>G</h2>
+<p><span class="strong">Goal hijack.</span> Failure mode: retrieved or observed content changes the agent's job (often via indirect prompt injection).</p>
+<p><span class="strong">Goal / stopping condition.</span> The task the loop is trying to complete, and the criterion by which it stops. Agents are not infinite loops. <a class="cite" href="https://simonwillison.net/2025/Sep/18/agents/">[Willison 2025]</a></p>
+<p><span class="strong">Grader.</span> Logic that scores some aspect of a run. Types: code-based, model-based (LLM-as-judge), human. A task may have several. Audit them; they have bugs.</p>
+<p><span class="strong">Grounding.</span> Connecting reasoning to external evidence (tool observations, retrieved chunks) so the chain cannot only hallucinate from weights.</p>
+<p><span class="strong">Guardrail.</span> A layer <em>around</em> the loop — classifiers, filters, rules, output checks, escalation — that can halt independent of the model’s next thought.</p>
+
+<h2>H</h2>
+<p><span class="strong">Handoff artifact.</span> Files, git history, feature lists, progress notes that a later session can read. Cross-session memory. Not compaction.</p>
+<p><span class="strong">Harness.</span> The software around the model: builds context, parses tool calls, executes functions, appends observations, loops or stops, persists state. The model is a function; the harness is the program.</p>
+<p><span class="strong">HITL (human-in-the-loop).</span> An explicit control-flow state: high-risk intents pause, persist, and resume when a human’s observation arrives. Not ambient “someone might watch.”</p>
+<p><span class="strong">Hybrid search.</span> Combining keyword (BM25) and embeddings, usually with a reranker.</p>
+
+<h2>I</h2>
+<p><span class="strong">Idempotency.</span> Applying the same event twice does not double-apply the side effect. Required for outer-loop webhooks.</p>
+<p><span class="strong">Indirect prompt injection (IPI).</span> Malicious instructions hidden in content the agent fetches (pages, mail, tool JSON), not typed by the user. <a class="cite" href="https://cheatsheetseries.owasp.org/cheatsheets/LLM_Prompt_Injection_Prevention_Cheat_Sheet.html">[OWASP]</a></p>
+<p><span class="strong">Inner loop.</span> A waiting human drives each turn (chat, IDE). Contrast <em>outer loop</em>.</p>
+<p><span class="strong">Initializer agent.</span> First-run agent that scaffolds an environment and machine-readable plan so later sessions can work incrementally. <a class="cite" href="https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents">[Anthropic]</a></p>
+<p><span class="strong">Interrupt.</span> Pause between tool <em>selection</em> and tool <em>invocation</em> (or at any owned control-flow seam) so a human or another system can approve, refuse, or supply data.</p>
+
+<h2>J</h2>
+<p><span class="strong">JSON-RPC (MCP).</span> The data-layer protocol MCP uses between client and server. Not your agent loop.</p>
+<p><span class="strong">JSON mode.</span> Decoding constraint that the output is valid JSON. Does not guarantee it matches your schema. Contrast Structured Outputs.</p>
+
+<h2>L</h2>
+<p><span class="strong">LLM-as-judge.</span> A model-based grader. Useful for fuzzy properties (tone, refusal). Must be audited against human labels; the judge can be wrong.</p>
+<p><span class="strong">Long-term memory.</span> Anything that survives a new call — files, databases, tickets, git. Visible to the model only when a tool puts a slice in the window.</p>
+
+<h2>M</h2>
+<p><span class="strong">MCP (Model Context Protocol).</span> Open protocol for exposing tools, resources, and prompts to AI hosts. USB-C for context — not a runtime, not an agent. <a class="cite" href="https://modelcontextprotocol.io/introduction">[MCP]</a></p>
+<p><span class="strong">MCP host / client / server.</span> Host = the AI app; client = one connection inside the host; server = the process that serves context (stdio or HTTP).</p>
+<p><span class="strong">Multimodal tokens.</span> Images (and other non-text) embedded in the same context window as text. How screenshots enter computer-use loops.</p>
+<p><span class="strong">Memory tool.</span> A tool (often filesystem-shaped) the agent uses to write and read persistent notes. The production implementation of long-term memory. <a class="cite" href="https://simonwillison.net/2025/Sep/18/agents/">[Willison 2025]</a></p>
+
+<h2>O</h2>
+<p><span class="strong">Outer loop.</span> The job starts or resumes from an event (cron, Slack, ticket), may pause for a human, and must persist state. Factor 11. Contrast <em>inner loop</em>.</p>
+<p><span class="strong">Observation.</span> The tool’s output, fed back into context and paired with the originating call id. Errors are observations too.</p>
+<p><span class="strong">Orchestrator–workers.</span> A lead decomposes at runtime, delegates, synthesizes. As a <em>workflow</em>, workers are single LLM calls. As <em>multi-agent</em>, workers are themselves tools-in-a-loop. The topology is the same; the bill is not.</p>
+
+<h2>P</h2>
+<p><span class="strong">Parallelization.</span> Workflow with two flavors: <em>sectioning</em> (independent subtasks at once) and <em>voting</em> (same task, many attempts, aggregate).</p>
+<p><span class="strong">Prompt cache.</span> Reuse of KV state for an identical prompt prefix. Cheaper cached-input tokens and faster TTFT. Breaks if you rewrite the head. <a class="cite" href="https://developers.openai.com/api/docs/guides/prompt-caching">[OpenAI]</a></p>
+<p><span class="strong">Prompt chaining.</span> Workflow: LLM calls in a fixed sequence, with optional programmatic gates between steps.</p>
+<p><span class="strong">Prompt injection.</span> Attacker-controlled natural language that the model treats as instructions, because instructions and data share a channel. Direct (user role) vs indirect (fetched content).</p>
+
+<h2>R</h2>
+<p><span class="strong">Resource (MCP).</span> Readable context a server exposes (file, schema, record). Not an action — contrast MCP <em>tools</em>.</p>
+<p><span class="strong">RAG (retrieval-augmented generation).</span> Fetch relevant pieces of a knowledge base and append them to the prompt. A pattern, not a product. <a class="cite" href="https://www.anthropic.com/engineering/contextual-retrieval">[Anthropic]</a></p>
+<p><span class="strong">ReAct.</span> Interleave reasoning traces and actions so thoughts can revise the plan and actions can ground the thoughts. A prompting pattern (Yao et al., ICLR 2023), now the default tool loop. <a class="cite" href="https://arxiv.org/abs/2210.03629">[Yao et al. 2023]</a></p>
+<p><span class="strong">Reasoning trace.</span> Verbal working memory emitted between actions (the <code>Thought:</code> line in ReAct; “thinking” tokens in later models).</p>
+<p><span class="strong">Reflexion.</span> After a trial, turn feedback into a verbal critique, store it in episodic memory, condition the next trial on it. Verbal RL; no weight updates. <a class="cite" href="https://arxiv.org/abs/2303.11366">[Shinn et al. 2023]</a></p>
+<p><span class="strong">Regression eval.</span> An eval that asks whether a change broke what already worked. Contrast <em>capability eval</em>.</p>
+<p><span class="strong">Routing.</span> Workflow: classify the input, send it to a specialist prompt or model.</p>
+<p><span class="strong">Runtime.</span> Orchestration machinery (checkpointers, interrupts, streaming, graph execution) around a loop you still have to design. LangGraph’s self-description. Not “an agent.”</p>
+<h2>S</h2>
+<p><span class="strong">Sampler.</span> The rule that picks the next token from the model’s distribution (greedy, temperature, top-p).</p>
+<p><span class="strong">Session.</span> One window’s worth of work, possibly compacted. A project spans many sessions; each new one starts empty unless artifacts are read.</p>
+<p><span class="strong">Span.</span> One node in a distributed trace (a model call, a tool execution). Children nest under an <code>invoke_agent</code> parent.</p>
+<p><span class="strong">Spin.</span> Failure mode: repeating a failing tool call or never declaring done. Fix with consecutive-error and step caps.</p>
+<p><span class="strong">System prompt.</span> The instruction prefix the end user does not author. Treat as source code (Factor 2).</p>
+<p><span class="strong">Short-term memory.</span> The current window — this conversation, this trial’s tools. Already baked into tools-in-a-loop.</p>
+<p><span class="strong">State reducer.</span> <code>next = reduce(events)</code>. The step function does not hold durable state; the event log does. Factor 12; also LangGraph’s merge functions on state keys.</p>
+<p><span class="strong">Strict mode / Structured Outputs.</span> Decoding constrained so output matches a supplied JSON Schema. Guarantees shape, not truth, safety, or wisdom. Contrast JSON mode (valid JSON only).</p>
+<p><span class="strong">Subagent.</span> An agent spawned by a lead, with its own window and tools, that returns a compressed result. Useful for breadth-first work; costly (~15× chat in Anthropic’s Research numbers).</p>
+
+<h2>T</h2>
+<p><span class="strong">Test-time compute.</span> Extra tokens spent at inference (CoT, longer “thinking”) to improve a single answer, as opposed to extra training.</p>
+<p><span class="strong">Token.</span> The integer unit models consume and emit. Billing and window limits are in tokens, not words.</p>
+<p><span class="strong">Trace.</span> One tree of spans for a single agent job. Without it you cannot tell grader bugs from agent bugs.</p>
+<p><span class="strong">TTFT (time to first token).</span> Time spent processing the prefix before any output token. Grows with uncached input; caching is a TTFT feature.</p>
+<p><span class="strong">Tool.</span> A function the agent can ask the harness to run. The model decides <em>when</em>; the harness executes and returns the observation.</p>
+<p><span class="strong">Tool call.</span> The structured request (name + arguments + id) the model emits. Not an RPC; not executed by the API for client tools.</p>
+<p><span class="strong">Tool risk.</span> Blast radius of a tool: read-only, write, irreversible (money, delete, email). Irreversible tools need an interrupt.</p>
+<p><span class="strong">Tool schema.</span> JSON Schema for a tool’s arguments, plus name and description. Prompt surface. Part of the ACI.</p>
+
+<h2>V</h2>
+<p><span class="strong">Verbal RL.</span> Improving the next trial by linguistic feedback stored in context, not by gradient updates. Reflexion’s slogan.</p>
+
+<h2>W</h2>
+<p><span class="strong">Workflow (vs. agent).</span> LLMs and tools orchestrated through <em>predefined code paths</em> — the developer decides the order. If your code picks the next step, it is a workflow; if the model does, it is an agent. <a class="cite" href="https://www.anthropic.com/engineering/building-effective-agents">[Anthropic 2024]</a> See <a href="./workflow-patterns.html">the five patterns</a>.</p>
+
+<nav class="lessons-nav">
+<span><a href="../syllabus.html">← Syllabus</a></span>
+<span><a href="./agent-loop.html">The agent loop →</a></span>
+</nav>
+</body>
+</html>

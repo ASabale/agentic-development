@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0004 — Context as working memory</title>
+<link rel="stylesheet" href="../assets/lesson.css">
+</head>
+<body>
+
+<p class="kicker">Lesson 0004 · Phase 1: Foundations · ~12 minutes</p>
+<h1>Context as working memory</h1>
+<p class="subtitle">Tokens, statelessness, and why the window is the whole interface.</p>
+
+<div class="win">
+<strong>Your one win today</strong>
+Explain, in one breath, why an LLM is stateless, why conversations get more expensive every turn, and why “just use a bigger window” is not a memory strategy.
+</div>
+
+<h2>1 · The model has no memory</h2>
+
+<p>An LLM is a function: tokens in, tokens out. Every call starts from a blank slate. The feeling of a conversation is a trick the harness plays — it <em>replays the entire transcript</em> on every turn.<a class="cite" href="https://simonwillison.net/guides/agentic-engineering-patterns/how-coding-agents-work/">[1]</a></p>
+
+<div class="def">
+<span class="label">Context window</span>
+The finite sequence of tokens the model can attend to in one call: system prompt, user messages, tool definitions, prior tool calls, observations, retrieved docs. That sequence <em>is</em> the agent's working memory. If it is not in the window, the model does not know it.
+</div>
+
+<p>Tokens, not words. Providers charge per token, and cap how many you can send. “the cat sat on the” is six integers, not five words.<a class="cite" href="https://simonwillison.net/guides/agentic-engineering-patterns/how-coding-agents-work/">[1]</a> You can see this at <a href="https://platform.openai.com/tokenizer">OpenAI’s tokenizer</a>.</p>
+
+<p>Because the harness resends the transcript, each extra turn is more expensive than the last: you pay for all previous tokens as <em>input</em> again. Cached prefixes (unchanged bytes at the start of the prompt) are billed cheaper, which is why serious harnesses <em>append-only</em> and never rewrite the prefix.<a class="cite" href="https://simonwillison.net/guides/agentic-engineering-patterns/how-coding-agents-work/">[1]</a></p>
+
+<h2>2 · Context engineering, not prompt poetry</h2>
+
+<p>Dex Horthy’s Factor 3: at any moment, the input to the model is “here’s what’s happened so far; what’s the next step?” Everything else is how you pack that sentence.<a class="cite" href="https://github.com/humanlayer/12-factor-agents/blob/main/content/factor-03-own-your-context-window.md">[2]</a></p>
+
+<p>Context is not only the chat. It is:</p>
+<ul>
+<li>the system prompt and tool schemas</li>
+<li>retrieved documents (RAG)</li>
+<li>prior tool calls and their observations</li>
+<li>memory pulled in from other sessions</li>
+<li>instructions about the shape of the next output</li>
+</ul>
+
+<p>The default “messages array” from an SDK is one packing. You can pack better: denser formats, YAML instead of nested JSON, errors compacted, resolved failures dropped. Owning the packing is the difference between a toy loop and a production agent.<a class="cite" href="https://github.com/humanlayer/12-factor-agents/blob/main/content/factor-03-own-your-context-window.md">[2]</a></p>
+
+<div class="def">
+<span class="label">Context rot</span>
+Quality degrades <em>before</em> you hit the hard token cap. As the window fills, recall of any given fact gets worse. Filling a 200k window because you can is how agents get lost. Keep the smallest high-signal set.
+</div>
+
+<h2>3 · When the window fills</h2>
+
+<p>Three honest responses, in order of preference:</p>
+<ol class="steps">
+<li><strong>Don't put it in.</strong> Just-in-time retrieval: keep pointers (paths, query ids, URLs) and load bytes only when a tool needs them. Progressive disclosure.</li>
+<li><strong>Compact.</strong> Summarize older turns into a high-fidelity recap; drop raw tool dumps that have been superseded. This is lossy. Admit that.</li>
+<li><strong>Externalize.</strong> Write notes to files or a store, and give the agent a tool to read them. That is memory — <a href="./0009-memory.html">lesson 0009</a>. It is not “a bigger window.”</li>
+</ol>
+
+<p>Factor 10 is the production corollary: small, focused agents of maybe 3–20 steps, not 100-step monologues. As context grows, models lose the plot. Scope is a context strategy.<a class="cite" href="https://github.com/humanlayer/12-factor-agents/blob/main/content/factor-10-small-focused-agents.md">[3]</a></p>
+
+<div class="interview">
+<span class="label">Interview angle</span>
+“How do you handle long-running agent conversations?” Weak: “use a 1M context model.” Strong: the model is stateless; the window is working memory; we append-only for cache; we compact or externalize before rot; we keep agents small so they never need the whole history.
+</div>
+
+<h2>4 · Retrieval practice</h2>
+
+<div class="quiz">
+
+<div class="q" data-ans="1">
+<p class="qtext">1. Why does a ten-turn chat cost more than ten times a one-turn chat?</p>
+<label><input type="radio" name="q1"> Models secretly fine-tune on your transcript between turns.</label>
+<label class="ans"><input type="radio" name="q1"> Each call resends the whole transcript as new input tokens.</label>
+<label><input type="radio" name="q1"> Tool schemas are recompiled by the GPU on every request.</label>
+<div class="feedback ok">Correct. Stateless function, replayed state. Cached prefixes blunt the bill; they do not remove it.</div>
+<div class="feedback no">The model does not remember the last turn. The harness resends everything. Option 2.</div>
+</div>
+
+<div class="q" data-ans="2">
+<p class="qtext">2. “Just give it a million-token window” fails as a memory strategy because…</p>
+<label><input type="radio" name="q2"> Providers refuse to sell windows larger than 128k tokens.</label>
+<label><input type="radio" name="q2"> Tool calls cannot be placed inside a window of that size.</label>
+<label class="ans"><input type="radio" name="q2"> Recall degrades as the window fills, long before the cap.</label>
+<div class="feedback ok">Correct. Context rot. The cap is not the only limit — attention quality is. High-signal, small context wins.</div>
+<div class="feedback no">Large windows exist. The problem is quality, not availability. Option 3.</div>
+</div>
+
+<div class="q" data-ans="0">
+<p class="qtext">3. Factor 3 in one line: your job each turn is to tell the model…</p>
+<label class="ans"><input type="radio" name="q3"> Here's what happened so far; what is the next step?</label>
+<label><input type="radio" name="q3"> Ignore history; solve only the latest user sentence.</label>
+<label><input type="radio" name="q3"> Replay the system prompt and drop all tool results.</label>
+<div class="feedback ok">Correct. That sentence is the whole interface. How you pack it is context engineering.</div>
+<div class="feedback no">Dropping history throws away working memory. The packing question is “what happened, what’s next?” Option 1.</div>
+</div>
+
+<div class="q" data-ans="2">
+<p class="qtext">4. Which is an honest response to a filling window?</p>
+<label><input type="radio" name="q4"> Silently truncate the middle; the model will interpolate.</label>
+<label><input type="radio" name="q4"> Raise temperature so the model attends more sharply.</label>
+<label class="ans"><input type="radio" name="q4"> Compact old turns, or move them behind a read-file tool.</label>
+<div class="feedback ok">Correct. Compact (lossy, admitted) or externalize (memory-as-a-tool). Temperature is not a memory control.</div>
+<div class="feedback no">Silent truncation and temperature are not strategies. Compact or externalize. Option 3.</div>
+</div>
+
+</div>
+
+<h2>5 · Read next (primary source)</h2>
+
+<p><a href="https://github.com/humanlayer/12-factor-agents/blob/main/content/factor-03-own-your-context-window.md">12-Factor Agents — Factor 3: Own your context window</a> (~10 min). Then, if you want the vendor-side vocabulary of “context engineering,” Anthropic’s <a href="https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents">Effective context engineering for AI agents</a>.</p>
+
+<h2>6 · Lock it in</h2>
+<ul>
+<li>Say it: “the model is a stateless function; the harness replays the window.”</li>
+<li>New glossary terms: <em>token</em>, <em>context window</em>, <em>context engineering</em>, <em>context rot</em>, <em>compaction</em>.</li>
+<li>Phase 1 is done. Recite 0001’s definition, 0002’s five beats, 0003’s five patterns, and this lesson’s one breath, before opening 0005.</li>
+</ul>
+
+<p class="reminder">If “stateless but it remembers my chat” still feels like a contradiction, ask. That contradiction is the whole lesson; we can walk a transcript together.</p>
+
+<nav class="lessons-nav">
+<span><a href="./0003-workflows-vs-agents.html">← 0003 Workflows vs agents</a></span>
+<span><a href="./0005-tool-design.html">0005 Tool design →</a></span>
+</nav>
+<script src="../assets/quiz.js"></script>
+</body>
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0018 — Design-interview drill</title>
+<link rel="stylesheet" href="../assets/lesson.css">
+</head>
+<body>
+
+<p class="kicker">Lesson 0018 · Phase 5: Career · ~15 minutes</p>
+<h1>Design-interview drill</h1>
+<p class="subtitle">Forty-five minutes, one whiteboard, no framework name until you have earned it.</p>
+
+<div class="win">
+<strong>Your one win today</strong>
+Run a seven-move script on any “design an agent” prompt. After this page, do the drill out loud — in chat with me, or to a wall. Fluency here is fake until you speak.
+</div>
+
+<h2>1 · What they are testing</h2>
+
+<p>Not whether you have used LangGraph. Whether you can:</p>
+<ul>
+<li>Refuse an agent when a workflow is enough (0001, 0003).</li>
+<li>Draw the loop and the split of labor (0002).</li>
+<li>Name failure modes and who owns them (0012, 0014).</li>
+<li>Say how you would know it got better (0013).</li>
+<li>Price the fancy options (0015, 0016) instead of defaulting to them.</li>
+</ul>
+
+<p>Mission success criterion: “Can pass design interviews on agentic systems: whiteboarding an agent architecture, naming failure modes, defending trade-offs.” This lesson is that criterion as a script.</p>
+
+<h2>2 · The seven moves</h2>
+
+<ol class="steps">
+<li><strong>Restate the job and the user.</strong> What is the goal, who is accountable, what happens if it is wrong? If they cannot name a human owner, you just found the HITL requirement.</li>
+<li><strong>Ask whether the path is enumerable.</strong> If yes, pick a workflow pattern by name (chain / route / parallel / orchestrator-workers / evaluator-optimizer). Stop climbing. If no, you have an agent.</li>
+<li><strong>Draw the five beats.</strong> Model / harness. Tools as structured outputs. Observation paired by id. Do not skip this drawing; it is how they see you have built one in your head.</li>
+<li><strong>List tools as an ACI.</strong> Three to seven verbs, risk-rated (read / write / irreversible). High-risk: interrupt between select and invoke. Descriptions are prompt surface.</li>
+<li><strong>Context and memory.</strong> What is in the window every turn? What is a pointer? What is a file? What must be exact (ids) vs searchable?</li>
+<li><strong>Guardrails + evals in the same breath.</strong> Layered defense; a held-out task set with code graders on world-state; LLM-judge for tone, audited; regression suite.</li>
+<li><strong>Cost ladder.</strong> Tokens per job, latency, 4× / 15× if they push multi-agent. Framework only if you need checkpointers or graph joins. Cap steps (Factor 10).</li>
+</ol>
+
+<div class="interview">
+<span class="label">Catchphrases that score</span>
+“Who picks the next step?” · “The API does not execute the function.” · “Valid JSON is not a correct refund.” · “Grade the world, not the path.” · “Multi-agent is extra windows, mostly extra tokens.” · “A computer cannot be held accountable.”
+</div>
+
+<h2>3 · A worked stub (do not memorize the domain — memorize the moves)</h2>
+
+<p><em>“Design an agent that handles inbound support tickets for a SaaS billing team.”</em></p>
+<ul>
+<li><strong>Job:</strong> resolve or escalate. Owner: billing lead. Wrong refund is money.</li>
+<li><strong>Path:</strong> most tickets are enumerable (lookup invoice → apply policy → reply). That is routing + chaining, with an agentic pocket for “I don’t recognize this.”</li>
+<li><strong>Loop:</strong> only in the pocket. Tools: <code>lookup_account</code>, <code>list_invoices</code>, <code>draft_reply</code>, <code>issue_refund</code> (HITL), <code>request_human</code>.</li>
+<li><strong>ACI:</strong> refund is irreversible → pause before invoke. Observations compact. No raw SQL.</li>
+<li><strong>Memory:</strong> ticket id and policy version are exact state. Wiki is search-as-tool.</li>
+<li><strong>Evals:</strong> 50 anonymized tickets, expected world-state, policy code-grader, tone judge on 20-human gold, jailbreak set.</li>
+<li><strong>Cost:</strong> default workflow; agent pocket capped at 8 steps; no multi-agent.</li>
+</ul>
+
+<h2>4 · Retrieval practice</h2>
+
+<div class="quiz">
+
+<div class="q" data-ans="1">
+<p class="qtext">1. First question, after restating the job?</p>
+<label><input type="radio" name="q1"> Which vector database they have already licensed.</label>
+<label class="ans"><input type="radio" name="q1"> Whether the steps can be enumerated in advance.</label>
+<label><input type="radio" name="q1"> How many subagents the lead should spawn by default.</label>
+<div class="feedback ok">Correct. That is the agent/workflow test. Databases and subagents come after, if ever.</div>
+<div class="feedback no">Do not open with vendors or multi-agent. Enumerable path? Option 2.</div>
+</div>
+
+<div class="q" data-ans="2">
+<p class="qtext">2. You mention a framework unprompted. Risk?</p>
+<label><input type="radio" name="q2"> None; naming LangGraph is the expected opening move.</label>
+<label><input type="radio" name="q2"> They will assume you cannot draw a loop without it.</label>
+<label class="ans"><input type="radio" name="q2"> You skipped proving you own prompts, loop, and interrupts.</label>
+<div class="feedback ok">Correct. Earn the runtime. Fifty lines first, checkpointers if needed. The interviewer has read Anthropic too.</div>
+<div class="feedback no">It is not the opening, and the real risk is skipped ownership. Option 3.</div>
+</div>
+
+<div class="q" data-ans="0">
+<p class="qtext">3. Best paired sentence with “we’ll add evals”?</p>
+<label class="ans"><input type="radio" name="q3"> Held-out tasks, world-state graders, a regression suite, audited judges.</label>
+<label><input type="radio" name="q3"> A production thumbs-up button, which is cheaper than tasks.</label>
+<label><input type="radio" name="q3"> We will know it works if nobody files a Sev-1 this quarter.</label>
+<div class="feedback ok">Correct. That sentence is lesson 0013 in one breath. Thumbs and Sev-1s are lagging signals.</div>
+<div class="feedback no">Prod vibes are not a development eval. Option 1.</div>
+</div>
+
+<div class="q" data-ans="2">
+<p class="qtext">4. They push “make it fully autonomous.” Your line?</p>
+<label><input type="radio" name="q4"> Agree; HITL is a legacy pattern from smaller models.</label>
+<label><input type="radio" name="q4"> Offer multi-agent so autonomy has more personalities.</label>
+<label class="ans"><input type="radio" name="q4"> Accountability stays human; high-risk intents pause.</label>
+<div class="feedback ok">Correct. IBM slide. Tools-in-a-loop is not a staff replacement. Pause on irreversible verbs.</div>
+<div class="feedback no">Do not drop HITL, and extra agents are not accountability. Option 3.</div>
+</div>
+
+</div>
+
+<h2>5 · Read next (primary source)</h2>
+
+<p>Re-read <a href="https://www.anthropic.com/engineering/building-effective-agents">Building effective agents</a> as if it were the answer key — because for many interviewers, it is. Then come to chat and say: “grill me on a billing agent.” We will run the seven moves with interruptions.</p>
+
+<h2>6 · Lock it in</h2>
+<ul>
+<li>Cover the page. Recite the seven moves. Then <em>say them</em>.</li>
+<li>This lesson is not done until you have done one live drill.</li>
+</ul>
+
+<p class="reminder">I am the interviewer whenever you want. Bring a domain. I will interrupt, which is the point.</p>
+
+<nav class="lessons-nav">
+<span><a href="./0017-long-running-harnesses.html">← 0017 Harnesses</a></span>
+<span><a href="./0019-read-a-real-ship.html">0019 Read a real ship →</a></span>
+</nav>
+<script src="../assets/quiz.js"></script>
+</body>
+</html>

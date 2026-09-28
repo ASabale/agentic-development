@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0029 — Inner vs outer loop</title>
+<link rel="stylesheet" href="../assets/lesson.css">
+</head>
+<body>
+
+<p class="kicker">Lesson 0029 · Phase 4 depth · ~10 minutes</p>
+<h1>Inner vs outer loop</h1>
+<p class="subtitle">Chat is one trigger. Production agents start from cron, Slack, and tickets. Factor 11.</p>
+
+<div class="win">
+<strong>Your one win today</strong>
+Draw two sequences: Human→Agent (inner) and Agent→Human (outer). Own the second as a paused thread plus a webhook, not as a chatbot that never sleeps.
+</div>
+
+<h2>1 · Who speaks first</h2>
+
+<div class="split">
+  <div>
+    <h3>Inner loop</h3>
+    <p>A human is sitting there. Each user message runs the five beats until an answer. ChatGPT, a support widget, Claude Code in the terminal. The process can be long-lived because someone is waiting.</p>
+  </div>
+  <div>
+    <h3>Outer loop</h3>
+    <p>A cron, a Stripe event, a Jira webhook starts the agent. The agent may <em>contact a human</em> (Factor 7) and go to sleep for hours. Control flow is Agent→Human, then resume. Dex’s “outer loop agents.”<a class="cite" href="https://github.com/humanlayer/12-factor-agents/blob/main/content/factor-07-contact-humans-with-tools.md">[1]</a></p>
+  </div>
+</div>
+
+<p>Factor 11: trigger from anywhere, meet users where they are.<a class="cite" href="https://github.com/humanlayer/12-factor-agents">[2]</a> If your only interface is a chat box, you have a demo. Production tickets arrive as JSON.</p>
+
+<h2>2 · Why the harness changes</h2>
+
+<p>Inner loop can cheat: hold the transcript in RAM, <code>input()</code> for HITL, process stays up. Outer loop cannot:</p>
+<ul>
+<li><strong>Serialize the thread</strong> (Factor 5/6) before you return 200 to the webhook.</li>
+<li><strong>Idempotency.</strong> The same Stripe event may fire twice. <code>reduce(events)</code> must not double-refund.</li>
+<li><strong>Timeouts.</strong> “Waiting for Alex” is a state, not a 30-second HTTP request.</li>
+<li><strong>AuthZ of the trigger.</strong> A public webhook is a new injection and fraud surface (0027).</li>
+</ul>
+
+<p>The seven-move interview script (0018) should start with “how does this job start?” If the answer is only “the user types,” push: overnight, email, failed CI — that is the outer loop, and it is where pause/resume earns a runtime (0016).</p>
+
+<div class="interview">
+<span class="label">Interview angle</span>
+“Design a deploy bot for Slack.” Strong: Slack message is a trigger; thread is persisted; list_tags is inner-loop-fast; deploy_prod is outer — request_human_input, persist, resume on reaction. Weak: “a ChatGPT window that an intern pastes into.”
+</div>
+
+<h2>3 · Retrieval practice</h2>
+
+<div class="quiz">
+
+<div class="q" data-ans="1">
+<p class="qtext">1. Outer loop means…</p>
+<label><input type="radio" name="q1"> The model samples extra thoughts after the user has left.</label>
+<label class="ans"><input type="radio" name="q1"> The job starts (or resumes) from an event, not a waiting typist.</label>
+<label><input type="radio" name="q1"> Nested multi-agent calls inside a single generate span.</label>
+<div class="feedback ok">Correct. Trigger from anywhere. Thoughts and subagents are orthogonal.</div>
+<div class="feedback no">Not leftover CoT, not nested agents. Events vs a waiting human. Option 2.</div>
+</div>
+
+<div class="q" data-ans="2">
+<p class="qtext">2. Why can’t outer-loop HITL be <code>input()</code> in the request worker?</p>
+<label><input type="radio" name="q2"> stdin is not Unicode-safe in Python 3.</label>
+<label><input type="radio" name="q2"> Models refuse to continue if the HTTP socket has closed.</label>
+<label class="ans"><input type="radio" name="q2"> The worker must return; the human may answer hours later.</label>
+<div class="feedback ok">Correct. Persist, notify, break. Webhook resume. Factor 6.</div>
+<div class="feedback no">Not Unicode, not a model rule. Lifetime. Option 3.</div>
+</div>
+
+<div class="q" data-ans="0">
+<p class="qtext">3. Idempotency matters here because…</p>
+<label class="ans"><input type="radio" name="q3"> The same event can be delivered twice; a reducer must not double-apply.</label>
+<label><input type="radio" name="q3"> Chat users always send each message exactly once by TCP.</label>
+<label><input type="radio" name="q3"> Cached prefixes are illegal unless every tool is idempotent.</label>
+<div class="feedback ok">Correct. Webhooks retry. <code>reduce(events)</code> is how you survive that.</div>
+<div class="feedback no">TCP doesn't save you, and cache ≠ idempotency. Option 1.</div>
+</div>
+
+<div class="q" data-ans="2">
+<p class="qtext">4. Factor 11 in one line?</p>
+<label><input type="radio" name="q4"> Only Slack is a legal channel for production agents.</label>
+<label><input type="radio" name="q4"> Agents must never send the first message of a conversation.</label>
+<label class="ans"><input type="radio" name="q4"> Meet the user on the channel the work already lives on.</label>
+<div class="feedback ok">Correct. Tickets, email, cron, Slack — wherever the job already is. Chat box optional.</div>
+<div class="feedback no">Not Slack-only, and outer loop *does* speak first. Option 3.</div>
+</div>
+
+</div>
+
+<h2>4 · Read next (primary source)</h2>
+
+<p><a href="https://github.com/humanlayer/12-factor-agents/blob/main/content/factor-07-contact-humans-with-tools.md">Factor 7</a> (the webhook sketch) and the Factor 11 heading in the <a href="https://github.com/humanlayer/12-factor-agents">README</a>. Dex’s “outer loop” language lives there.</p>
+
+<h2>5 · Lock it in</h2>
+<ul>
+<li>Who speaks first. Persist before you return. Recite.</li>
+<li>New glossary terms: <em>inner loop</em>, <em>outer loop</em>, <em>idempotency</em>.</li>
+</ul>
+
+<p class="reminder">Capstone can stay inner-loop (stdin confirm). Note in the write-up how you’d promote it to a webhook. That sentence scores.</p>
+
+<nav class="lessons-nav">
+<span><a href="./0028-mcp.html">← 0028 MCP</a></span>
+<span><a href="./0030-computer-use.html">0030 Computer use →</a></span>
+</nav>
+<script src="../assets/quiz.js"></script>
+</body>
+</html>

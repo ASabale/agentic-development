@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0016 — When frameworks pay</title>
+<link rel="stylesheet" href="../assets/lesson.css">
+</head>
+<body>
+
+<p class="kicker">Lesson 0016 · Phase 4: Advanced · ~12 minutes</p>
+<h1>When frameworks pay</h1>
+<p class="subtitle">The loop is fifty lines. You buy a runtime for the parts that are not.</p>
+
+<div class="win">
+<strong>Your one win today</strong>
+Draw the buy-vs-build line: own the loop until you need durable execution, interrupts between select and invoke, or graph-shaped control flow worth checkpointing. Name LangGraph as a runtime, not as “an agent.”
+</div>
+
+<h2>1 · The loop is not the product</h2>
+
+<p>Willison: a simple tool loop is a few dozen lines on top of an LLM API. A <em>good</em> loop is much more work — and the extras are engineering, not intelligence.<a class="cite" href="https://simonwillison.net/guides/agentic-engineering-patterns/how-coding-agents-work/">[1]</a></p>
+
+<p>Anthropic, same direction: the most successful production systems were not complex frameworks. Start with the API; many patterns are a few lines. Frameworks ease boilerplate and then hide prompts and responses, which makes debugging worse.<a class="cite" href="https://www.anthropic.com/engineering/building-effective-agents">[2]</a></p>
+
+<p>Horthy: he does not see a lot of frameworks in production customer-facing agents. Founders rolling the stack. “Agents” that are mostly software.<a class="cite" href="https://github.com/humanlayer/12-factor-agents">[3]</a></p>
+
+<p>So the default in this course remains: write the five beats. Own the prompt. Own the window. That is lessons 0002, 0005, 0011, 0014.</p>
+
+<h2>2 · What LangGraph actually sells</h2>
+
+<p>LangGraph’s own positioning is unusually honest. It is “a low-level orchestration framework and runtime for building, managing, and deploying long-running, stateful agents.” The durable value is not a hidden ReAct prompt. It is durable execution, streaming, human-in-the-loop, persistence.<a class="cite" href="https://docs.langchain.com/oss/python/langgraph/graph-api">[4]</a></p>
+
+<p>The vocabulary, which you should be able to draw:</p>
+<ul>
+<li><span class="strong">State</span> — the snapshot. Schema + reducers (how updates merge). This is Factor 12 with types.</li>
+<li><span class="strong">Nodes</span> — functions. May call an LLM, or just run code. “Nodes do the work.”</li>
+<li><span class="strong">Edges</span> — functions that pick the next node, including conditional ones. “Edges tell what to do next.”</li>
+<li><span class="strong">Compile</span> — validate the graph; attach checkpointers and breakpoints. You must compile before you run.</li>
+</ul>
+
+<p>Under the hood: message-passing in Pregel-style super-steps. Nodes that can run together do; the graph halts when nothing is in flight. That is a workflow engine that is allowed to loop — which is why it can express both lesson 0003’s patterns and lesson 0002’s agent loop as the same object.</p>
+
+<div class="def">
+<span class="label">When it pays</span>
+You need to <strong>pause between select and invoke</strong>, resume after a crash, branch on state, fan-out and join, or stream tokens to a UI — and you would rather not build a checkpointer. You still write the prompts. You still own the schemas.
+</div>
+
+<div class="split">
+  <div>
+    <h3>Stay with a loop</h3>
+    <p>Linear tools-in-a-loop. Few intents. You can persist a JSON thread yourself. You want every prompt in grep.</p>
+  </div>
+  <div>
+    <h3>Buy a runtime</h3>
+    <p>HITL as a first-class interrupt. Multiple writers on state. Long-running jobs. You want a graph picture your team can argue about.</p>
+  </div>
+</div>
+
+<div class="interview">
+<span class="label">Interview angle</span>
+“Why didn’t you use LangGraph?” Strong: the loop is trivial; we needed X; until we needed durable interrupts / graph joins we kept fifty lines we can debug. If we did use it: we bought checkpointers and interrupts, not a personality. Weak: “LangChain is industry standard so we started there.”
+</div>
+
+<h2>3 · Retrieval practice</h2>
+
+<div class="quiz">
+
+<div class="q" data-ans="1">
+<p class="qtext">1. Anthropic’s advice on frameworks, compressed?</p>
+<label><input type="radio" name="q1"> Always start with a graph runtime; APIs are a legacy path.</label>
+<label class="ans"><input type="radio" name="q1"> Start with the API; frameworks hide prompts and hurt debug.</label>
+<label><input type="radio" name="q1"> Frameworks are required once you have more than one tool.</label>
+<div class="feedback ok">Correct. Extra layers obscure prompts and responses. Many patterns are a few lines of API code.</div>
+<div class="feedback no">Tool count does not force a framework, and APIs are not legacy. Option 2.</div>
+</div>
+
+<div class="q" data-ans="2">
+<p class="qtext">2. LangGraph’s three nouns?</p>
+<label><input type="radio" name="q2"> Agents, memories, personalities — compiled by a broker.</label>
+<label><input type="radio" name="q2"> Prompts, embeddings, tools — owned by LangChain core.</label>
+<label class="ans"><input type="radio" name="q2"> State, nodes, edges — compile before you run.</label>
+<div class="feedback ok">Correct. Nodes do the work; edges pick next; state is the snapshot with reducers.</div>
+<div class="feedback no">Not personalities, and prompts are still yours. State / nodes / edges. Option 3.</div>
+</div>
+
+<div class="q" data-ans="0">
+<p class="qtext">3. A good reason to adopt a graph runtime?</p>
+<label class="ans"><input type="radio" name="q3"> You need crash-safe pause between tool select and invoke.</label>
+<label><input type="radio" name="q3"> You want the runtime to author your system prompt for you.</label>
+<label><input type="radio" name="q3"> You have not yet written a tool schema, and hope not to.</label>
+<div class="feedback ok">Correct. Interrupts and checkpointers are the product. Prompts and schemas stay yours.</div>
+<div class="feedback no">If it writes your prompt or your schema, you no longer own Factor 2 and 4. Option 1.</div>
+</div>
+
+<div class="q" data-ans="2">
+<p class="qtext">4. “LangGraph is an agent” is wrong because…</p>
+<label><input type="radio" name="q4"> LangGraph cannot call tools by license.</label>
+<label><input type="radio" name="q4"> Graphs cannot loop, so agents are impossible in it.</label>
+<label class="ans"><input type="radio" name="q4"> It is a runtime; an agent is the loop you still have to design.</label>
+<div class="feedback ok">Correct. Low-level orchestration. You can build a workflow or an agent on the same graph.</div>
+<div class="feedback no">It can loop, and it can call tools. It is not itself the agent. Option 3.</div>
+</div>
+
+</div>
+
+<h2>4 · Read next (primary source)</h2>
+
+<p><a href="https://docs.langchain.com/oss/python/langgraph/graph-api">LangGraph — Graph API overview</a> (State, Nodes, Edges, compile). Pair with Anthropic’s framework paragraph in <a href="https://www.anthropic.com/engineering/building-effective-agents">Building effective agents</a>.</p>
+
+<h2>5 · Lock it in</h2>
+<ul>
+<li>Fifty lines vs checkpointers. Recite the buy-vs-build split.</li>
+<li>New glossary terms: <em>runtime</em>, <em>checkpointer</em>, <em>state reducer</em>, <em>interrupt</em> (HITL seam).</li>
+</ul>
+
+<p class="reminder">If you want a 20-line Python loop sketched next to a 20-line StateGraph, ask. Seeing them side by side is the lesson.</p>
+
+<nav class="lessons-nav">
+<span><a href="./0015-multi-agent.html">← 0015 Multi-agent</a></span>
+<span><a href="./0017-long-running-harnesses.html">0017 Long-running harnesses →</a></span>
+</nav>
+<script src="../assets/quiz.js"></script>
+</body>
+</html>

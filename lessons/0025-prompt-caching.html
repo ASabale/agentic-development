@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0025 — Prompt caching</title>
+<link rel="stylesheet" href="../assets/lesson.css">
+</head>
+<body>
+
+<p class="kicker">Lesson 0025 · Phase 3 depth · ~12 minutes</p>
+<h1>Prompt caching</h1>
+<p class="subtitle">Append-only prefixes are a cost feature. Rewrite the system prompt and you pay twice.</p>
+
+<div class="win">
+<strong>Your one win today</strong>
+Explain a cache hit as “the same rendered prefix, so the provider reuses KV state,” and name the harness rule that protects it: stable head, append-only tail.
+</div>
+
+<h2>1 · What is being cached</h2>
+
+<p>When a model reads a prefix it builds intermediate key–value (KV) tensors so later tokens can attend back. Prompt caching stores those tensors for a reusable prefix. The next request that starts with the <em>same rendered bytes</em> can skip that work: cheaper input (OpenAI: discounts up to ~90% on cached reads) and faster time-to-first-token.<a class="cite" href="https://developers.openai.com/api/docs/guides/prompt-caching">[1]</a></p>
+
+<p>It caches <strong>KV state, not your secrets as a document store</strong>. A later request still has to match the prefix. Change the system prompt, reorder tools, or insert a message at the head, and everything after the first difference cannot hit.</p>
+
+<div class="def">
+<span class="label">Harness rule</span>
+Put static content first (system, tool schemas, long instructions). Append new turns and observations at the end. Never rewrite history “to be tidy.” Tidiness is a cache miss — and a correctness bug besides (0004).
+</div>
+
+<p>Willison already flagged this as why coding agents are append-only.<a class="cite" href="https://simonwillison.net/guides/agentic-engineering-patterns/how-coding-agents-work/">[2]</a> OpenAI’s cookbook says the same: tools and their <em>order</em> must be identical to stay in the prefix; add new messages at the end.<a class="cite" href="https://developers.openai.com/cookbook/examples/prompt_caching101">[3]</a></p>
+
+<h2>2 · Numbers that change, mechanics that don’t</h2>
+
+<ul>
+<li>Minimum prefix length before anything caches (OpenAI documents 1,024 tokens on recent families; check the page for the model you use).<a class="cite" href="https://developers.openai.com/api/docs/guides/prompt-caching">[1]</a></li>
+<li>Reads are cheap; on newer families writes can cost a premium (OpenAI: 1.25× uncached on GPT-5.6+). Worth it when you reuse.</li>
+<li>Compaction (0004) <em>replaces</em> the prefix — it is a deliberate cache break. Do it when rot demands, then keep the new recap stable.</li>
+</ul>
+
+<p>Measure <code>cached_tokens</code> / cache-read hits. If your agent is 4× chat (0023) and your hit rate is 0%, you are burning the triangular prefix at full price.</p>
+
+<div class="interview">
+<span class="label">Interview angle</span>
+“How do you keep agent cost down?” After the envelope: append-only for cache; don’t shuffle tools; don’t put the user id at the start of the system prompt if it varies per customer (that turns the whole prefix cold). Compaction is a cost/quality trade, not free.</div>
+
+<h2>3 · Retrieval practice</h2>
+
+<div class="quiz">
+
+<div class="q" data-ans="1">
+<p class="qtext">1. A cache hit requires…</p>
+<label><input type="radio" name="q1"> The same user id, even if the prompt text changed.</label>
+<label class="ans"><input type="radio" name="q1"> An identical rendered prefix so KV state can be reused.</label>
+<label><input type="radio" name="q1"> That the output tokens match a previous answer exactly.</label>
+<div class="feedback ok">Correct. Prefix bytes (and cache-affecting settings). Output can differ; that is the point of a new call.</div>
+<div class="feedback no">Not user-id magic, not matching answers. Same prefix. Option 2.</div>
+</div>
+
+<div class="q" data-ans="2">
+<p class="qtext">2. Inserting a new system sentence at the top of every turn…</p>
+<label><input type="radio" name="q2"> Improves cache hits by making the prefix more informative.</label>
+<label><input type="radio" name="q2"> Is required so the model knows the date each time.</label>
+<label class="ans"><input type="radio" name="q2"> Breaks the prefix from token one; you pay full input again.</label>
+<div class="feedback ok">Correct. Dates and per-turn extras belong at the tail (or in a dedicated later message), not in the static head.</div>
+<div class="feedback no">More information at the head is a miss, not a hit. Option 3.</div>
+</div>
+
+<div class="q" data-ans="0">
+<p class="qtext">3. Why must tool schema order stay stable?</p>
+<label class="ans"><input type="radio" name="q3"> Reordering changes the rendered prefix, so the cache misses.</label>
+<label><input type="radio" name="q3"> Models can only call tools in the order they were first listed.</label>
+<label><input type="radio" name="q3"> JSON Schema forbids two properties unless alphabetized.</label>
+<div class="feedback ok">Correct. Cookbook: tools and their order are part of the prefix. Call order at runtime is a different question.</div>
+<div class="feedback no">The model can call in any order. Schema alphabetization is a myth. Option 1.</div>
+</div>
+
+<div class="q" data-ans="2">
+<p class="qtext">4. Compaction vs caching?</p>
+<label><input type="radio" name="q4"> Compaction is how providers implement the cache internally.</label>
+<label><input type="radio" name="q4"> They are opposites: you must never compact if you cache.</label>
+<label class="ans"><input type="radio" name="q4"> Compaction rewrites the prefix on purpose; then keep it stable.</label>
+<div class="feedback ok">Correct. Break, then append-only on the new recap. Both are valid; they trade at different times.</div>
+<div class="feedback no">Not the implementation of cache, and not a ban. Rewrite once, then hold still. Option 3.</div>
+</div>
+
+</div>
+
+<h2>4 · Read next (primary source)</h2>
+
+<p><a href="https://developers.openai.com/api/docs/guides/prompt-caching">OpenAI — Prompt caching</a> (why it matters + how caching works). Optional cookbook: <a href="https://developers.openai.com/cookbook/examples/prompt_caching101">Prompt Caching 101</a>.</p>
+
+<h2>5 · Lock it in</h2>
+<ul>
+<li>Stable head, append-only tail. Recite. Then look at your future harness and put the customer id somewhere it will not bust the prefix.</li>
+<li>New glossary terms: <em>prompt cache</em>, <em>cached input tokens</em>, <em>KV state</em>.</li>
+</ul>
+
+<p class="reminder">If you want to walk a before/after prompt layout for cache hits, paste a sketch. Layout is the skill.</p>
+
+<nav class="lessons-nav">
+<span><a href="./0024-failure-modes.html">← 0024 Failure modes</a></span>
+<span><a href="./0026-traces-and-observability.html">0026 Traces →</a></span>
+</nav>
+<script src="../assets/quiz.js"></script>
+</body>
+</html>

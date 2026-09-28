@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0005 — Tool design</title>
+<link rel="stylesheet" href="../assets/lesson.css">
+</head>
+<body>
+
+<p class="kicker">Lesson 0005 · Phase 2: Core patterns · ~12 minutes</p>
+<h1>Tool design as API contract</h1>
+<p class="subtitle">The schema is not docs for humans. It is part of the prompt.</p>
+
+<div class="win">
+<strong>Your one win today</strong>
+Treat a tool definition the way you would treat a public API: name, description, and JSON schema are the agent's only view of the world. Design them as an <em>agent–computer interface</em>, not as afterthought comments.
+</div>
+
+<h2>1 · A tool is a contract the model can see</h2>
+
+<p>A tool definition has three fields that matter:<a class="cite" href="https://developers.openai.com/api/docs/guides/function-calling">[1]</a></p>
+<ul>
+<li><span class="strong">Name</span> — a verb the model can say. <code>get_weather</code>, not <code>weatherHelperV2</code>.</li>
+<li><span class="strong">Description</span> — when to use it, when not to, what it returns. This text is injected into context. It is prompt engineering.</li>
+<li><span class="strong">Parameters</span> — a JSON Schema for arguments. Types, required fields, enums, descriptions per field. OpenAI’s <code>strict: true</code> (Structured Outputs) can constrain decoding so arguments <em>match</em> the schema, not merely look like JSON.<a class="cite" href="https://developers.openai.com/api/docs/guides/function-calling">[1]</a></li>
+</ul>
+
+<p>Anthropic’s name for this surface is the <span class="strong">agent–computer interface (ACI)</span>: invest in it the way product teams invest in HCI. Poka-yoke the arguments (require absolute paths; reject ambiguous ids), write descriptions as if onboarding a junior engineer, prefer a few high-level tools over a swarm of overlapping ones.<a class="cite" href="https://www.anthropic.com/engineering/building-effective-agents">[2]</a></p>
+
+<div class="def">
+<span class="label">ACI</span>
+The contract between a non-deterministic model and deterministic code. The model never sees your implementation — only the schema and the observation. If the contract is sloppy, the model will call sloppily.
+</div>
+
+<h2>2 · Errors are observations</h2>
+
+<p>When a tool fails, do not swallow it. Return a compact, truthful observation: what failed, what the model can change next time. 12-factor Factor 9: compact the error into the window so the model can self-heal; cap retries so it cannot spin.<a class="cite" href="https://github.com/humanlayer/12-factor-agents/blob/main/content/factor-09-compact-errors.md">[3]</a></p>
+
+<p>If the model emitted two calls and you skip the second, still return a result for it (an error with a one-line reason). A missing observation desynchronizes the transcript — lesson 0002.</p>
+
+<h2>3 · Fewer, better tools</h2>
+
+<p>More tools are not more capability. Overlapping names confuse selection. Anthropic’s SWE-bench work spent more effort on tool descriptions than on the system prompt; small wording changes dropped error rates sharply.<a class="cite" href="https://www.anthropic.com/engineering/building-effective-agents">[2]</a> The practical rules:</p>
+<ul>
+<li>One tool, one job. If two tools could both apply, the description must make the split obvious.</li>
+<li>Return token-efficient results. A 40-row table beats a 400-line JSON dump. The observation consumes the window.</li>
+<li>Namespace if you must (<code>jira.create_issue</code> vs <code>github.create_issue</code>).</li>
+<li>Do not expose a raw SQL tool to a customer-facing agent. Expose <code>lookup_order(id)</code>. The ACI is also a security boundary — <a href="./0012-guardrails-and-hitl.html">lesson 0012</a>.</li>
+</ul>
+
+<div class="interview">
+<span class="label">Interview angle</span>
+“How would you design tools for a support agent?” Talk ACI, not frameworks. Name, description, schema; poka-yoke ids; compact errors; few tools; observations as the only channel. Mention that tool descriptions are in the prompt, so they compete with everything else for attention.
+</div>
+
+<h2>4 · Retrieval practice</h2>
+
+<div class="quiz">
+
+<div class="q" data-ans="2">
+<p class="qtext">1. Why is a tool description “prompt engineering,” not documentation?</p>
+<label><input type="radio" name="q1"> It is compiled into weights the next time the model trains.</label>
+<label><input type="radio" name="q1"> It is shown only to humans who review the pull request.</label>
+<label class="ans"><input type="radio" name="q1"> It is injected into context and shapes every tool decision.</label>
+<div class="feedback ok">Correct. The model never reads your wiki. It reads the description sitting in the window, every turn.</div>
+<div class="feedback no">Descriptions live in the prompt. They are not training data and not for human reviewers. Option 3.</div>
+</div>
+
+<div class="q" data-ans="0">
+<p class="qtext">2. A lookup tool returns a 12,000-token JSON blob. What is the real cost?</p>
+<label class="ans"><input type="radio" name="q2"> It fills working memory and crowds out the rest of the task.</label>
+<label><input type="radio" name="q2"> JSON cannot be parsed by models that only accept YAML.</label>
+<label><input type="radio" name="q2"> The harness crashes; models cannot observe more than 4k.</label>
+<div class="feedback ok">Correct. Observations are context. Bloated results cause rot (lesson 0004). Compact what you return.</div>
+<div class="feedback no">Models can read JSON. The cost is the window, not a crash. Option 1.</div>
+</div>
+
+<div class="q" data-ans="1">
+<p class="qtext">3. Best response when a tool throws?</p>
+<label><input type="radio" name="q3"> Catch it, retry silently, never tell the model it failed.</label>
+<label class="ans"><input type="radio" name="q3"> Return a compact error as the observation; cap retries.</label>
+<label><input type="radio" name="q3"> Restart the whole agent so the failure cannot taint state.</label>
+<div class="feedback ok">Correct. Errors are observations. Self-heal once or twice; then stop or escalate. Factor 9.</div>
+<div class="feedback no">Hiding failure removes the only signal the model has. Restarting throws away working memory. Option 2.</div>
+</div>
+
+<div class="q" data-ans="2">
+<p class="qtext">4. “Give the agent the Stripe SDK as one big tool” is a bad ACI because…</p>
+<label><input type="radio" name="q4"> Models are forbidden from outputting JSON with nested keys.</label>
+<label><input type="radio" name="q4"> SDKs cannot be described in JSON Schema at all.</label>
+<label class="ans"><input type="radio" name="q4"> A sprawling surface invites wrong calls and unsafe ones.</label>
+<div class="feedback ok">Correct. Expose the three verbs you mean (<code>create_payment_link</code>, …). The ACI is also a security boundary.</div>
+<div class="feedback no">Schema and JSON are fine. The problem is a wide, unsafe, overlapping surface. Option 3.</div>
+</div>
+
+</div>
+
+<h2>5 · Read next (primary source)</h2>
+
+<p><a href="https://www.anthropic.com/engineering/writing-tools-for-agents">Anthropic — Writing effective tools for AI agents</a>. Pair with <a href="https://developers.openai.com/api/docs/guides/function-calling">OpenAI function calling</a> for the schema fields (<code>name</code>, <code>description</code>, <code>parameters</code>, <code>strict</code>).</p>
+
+<h2>6 · Lock it in</h2>
+<ul>
+<li>From memory: the three fields of a tool definition, and one poka-yoke example.</li>
+<li>New glossary terms: <em>ACI</em>, <em>tool schema</em>, <em>strict mode</em>.</li>
+</ul>
+
+<p class="reminder">Want to walk a bad schema and rewrite it together? Paste one in chat. That is better practice than another paragraph.</p>
+
+<nav class="lessons-nav">
+<span><a href="./0004-context-as-working-memory.html">← 0004 Context</a></span>
+<span><a href="./0006-chain-of-thought.html">0006 Chain-of-thought →</a></span>
+</nav>
+<script src="../assets/quiz.js"></script>
+</body>
+</html>

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0013 — Evaluating agents</title>
+<link rel="stylesheet" href="../assets/lesson.css">
+</head>
+<body>
+
+<p class="kicker">Lesson 0013 · Phase 3: Production · ~12 minutes</p>
+<h1>Evaluating agents</h1>
+<p class="subtitle">A task, a trajectory, a grader. Without this you are guessing in production.</p>
+
+<div class="win">
+<strong>Your one win today</strong>
+Define an agent eval the way Anthropic does, name three kinds of grader, and refuse to grade a rigid path when you meant to grade an outcome.
+</div>
+
+<h2>1 · What an eval is</h2>
+
+<p>Anthropic, <em>Demystifying evals for AI agents</em>:<a class="cite" href="https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents">[1]</a></p>
+
+<div class="def">
+<span class="label">Eval</span>
+Give an AI an input (a <strong>task</strong>, often with an environment), run it, apply <strong>grading logic</strong> to its output — and, for agents, to the trajectory and the world it left behind. The post focuses on automated evals you can run in development, without live users.
+</div>
+
+<p>A <span class="strong">grader</span> scores some aspect of the run. One task can have several graders, each with several assertions. Three types, used in combination:</p>
+<table>
+<thead><tr><th>Grader</th><th>Example</th><th>Strength</th><th>Failure</th></tr></thead>
+<tbody>
+<tr><td>Code-based</td><td>Unit tests, file exists, SQL row written, regex on output</td><td>Cheap, deterministic, replayable</td><td>Blind to quality that tests don’t encode</td></tr>
+<tr><td>Model-based (LLM-as-judge)</td><td>“Does this reply refuse the jailbreak?”</td><td>Covers fuzzy properties</td><td>The judge can be wrong; audit it</td></tr>
+<tr><td>Human</td><td>Expert review of traces</td><td>Gold for new domains</td><td>Slow; use to calibrate the other two</td></tr>
+</tbody>
+</table>
+
+<p>Two jobs evals do, do not mix them:</p>
+<ul>
+<li><span class="strong">Capability:</span> did this change make the agent better at the hard things?</li>
+<li><span class="strong">Regression:</span> did this change break what already worked?</li>
+</ul>
+
+<p>Anthropic’s warning: early on, dogfooding feels faster than evals. After you ship, building without them becomes a reactive loop — wait for complaints, reproduce by hand, fix, hope nothing else died. Claude Code itself started on employee feedback and only later grew evals (concision, file edits, then over-engineering).<a class="cite" href="https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents">[1]</a></p>
+
+<h2>2 · Grade outcomes, audit graders</h2>
+
+<p>Agents take many paths to the same goal. Over-specifying the path (“must call tool A then B”) punishes a better plan. Prefer assertions on the world: the file is correct, the refund is the right amount, the citation is in the retrieved set. Use path assertions sparingly, for safety (“must not call <code>drop_table</code>”).</p>
+
+<p>Graders are software. They have bugs. Anthropic’s cautionary tale: a grader’s decimal-place strictness demolished scores until someone <em>read the transcripts</em> and fixed the grader, not the agent. Always sample traces. A 40-point swing may be the ruler, not the student.<a class="cite" href="https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents">[1]</a></p>
+
+<p>Chip Huyen’s broader AI-engineering stance is the same instinct: evaluation-first. If you cannot say what “better” means, you cannot iterate.<a class="cite" href="https://www.oreilly.com/library/view/ai-engineering/9781098166298/">[2]</a></p>
+
+<div class="interview">
+<span class="label">Interview angle</span>
+“How would you eval this support agent?” Strong: a held-out set of tickets with expected world-state (refund issued iff policy matches); code graders for policy; an LLM-judge for tone, audited against a human sample; a regression suite that must stay green; traces on every fail. Weak: “we’d look at thumbs-up in prod.”
+</div>
+
+<h2>3 · Retrieval practice</h2>
+
+<div class="quiz">
+
+<div class="q" data-ans="1">
+<p class="qtext">1. An agent eval, in Anthropic’s wording, is…</p>
+<label><input type="radio" name="q1"> A/B traffic in production with no development tests.</label>
+<label class="ans"><input type="radio" name="q1"> An input, a run, and grading logic on the result.</label>
+<label><input type="radio" name="q1"> A leaderboard of model APIs with no task attached.</label>
+<div class="feedback ok">Correct. Task + run + grader. Production monitoring is complementary, not a substitute.</div>
+<div class="feedback no">Live traffic and vendor leaderboards are not a development eval. Option 2.</div>
+</div>
+
+<div class="q" data-ans="2">
+<p class="qtext">2. You should usually grade an agent on…</p>
+<label><input type="radio" name="q2"> The exact tool sequence you would have written by hand.</label>
+<label><input type="radio" name="q2"> Whether the chain-of-thought mentioned your brand voice.</label>
+<label class="ans"><input type="radio" name="q2"> The outcome in the environment, plus a few safety bans.</label>
+<div class="feedback ok">Correct. Many paths, one world-state. Reserve path checks for “must not.”</div>
+<div class="feedback no">Rigid paths and thought-policing punish good agents. Grade the world. Option 3.</div>
+</div>
+
+<div class="q" data-ans="0">
+<p class="qtext">3. A capability eval and a regression eval differ because…</p>
+<label class="ans"><input type="radio" name="q3"> One asks “did we get better?”; the other “did we break old wins?”</label>
+<label><input type="radio" name="q3"> One uses humans; the other is required to use only regex.</label>
+<label><input type="radio" name="q3"> One runs in CI; the other may only run on Fridays.</label>
+<div class="feedback ok">Correct. Same machinery, two questions. You need both once you have a baseline.</div>
+<div class="feedback no">The split is the question you ask, not the grader species or the calendar. Option 1.</div>
+</div>
+
+<div class="q" data-ans="2">
+<p class="qtext">4. Scores crater after a grader change. First move?</p>
+<label><input type="radio" name="q4"> Roll back the model; graders are never wrong.</label>
+<label><input type="radio" name="q4"> Add more tools so the agent can outrun the grader.</label>
+<label class="ans"><input type="radio" name="q4"> Read transcripts — the ruler may be the bug.</label>
+<div class="feedback ok">Correct. Anthropic’s decimal-place story. Audit the grader before rewriting the agent.</div>
+<div class="feedback no">Do not treat the grader as scripture, and do not drown it in tools. Read traces. Option 3.</div>
+</div>
+
+</div>
+
+<h2>4 · Read next (primary source)</h2>
+
+<p><a href="https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents">Anthropic — Demystifying evals for AI agents</a>. Read the whole post; it is the production document juniors skip and seniors are tested on.</p>
+
+<h2>5 · Lock it in</h2>
+<ul>
+<li>From memory: task, trajectory, three graders, outcome-not-path, audit the ruler.</li>
+<li>New glossary terms: <em>eval</em>, <em>grader</em>, <em>LLM-as-judge</em>, <em>capability eval</em>, <em>regression eval</em>.</li>
+</ul>
+
+<p class="reminder">If you want to sketch 5 eval tasks for a concrete agent (files, tickets, refunds), describe the agent in chat. Writing the first five is the skill.</p>
+
+<nav class="lessons-nav">
+<span><a href="./0012-guardrails-and-hitl.html">← 0012 Guardrails</a></span>
+<span><a href="./0014-twelve-factor-agents.html">0014 Twelve-factor agents →</a></span>
+</nav>
+<script src="../assets/quiz.js"></script>
+</body>
+</html>

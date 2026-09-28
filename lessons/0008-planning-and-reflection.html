@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0008 — Planning and reflection</title>
+<link rel="stylesheet" href="../assets/lesson.css">
+</head>
+<body>
+
+<p class="kicker">Lesson 0008 · Phase 2: Core patterns · ~12 minutes</p>
+<h1>Planning and reflection</h1>
+<p class="subtitle">Decompose the job. Then critique the trajectory — in language, not in weights.</p>
+
+<div class="win">
+<strong>Your one win today</strong>
+Separate three verbs interviewers mash together: <em>decompose</em> (plan the work), <em>reason</em> (ReAct thoughts), <em>reflect</em> (verbal feedback stored for the next trial). Cite Reflexion for the third.
+</div>
+
+<h2>1 · Planning is decomposition</h2>
+
+<p>Lilian Weng’s durable taxonomy of an LLM agent has three components: planning, memory, tool use.<a class="cite" href="https://lilianweng.github.io/posts/2023-06-23-agent/">[1]</a> Planning itself splits in two:</p>
+<div class="split">
+  <div>
+    <h3>Subgoal and decomposition</h3>
+    <p>Break a large task into smaller ones the loop can actually finish. CoT is the cheap version (“think step by step”). Tree-of-Thoughts explores several next thoughts. You can also just prompt: “List the subgoals.”</p>
+  </div>
+  <div>
+    <h3>Reflection and refinement</h3>
+    <p>Look at what already happened, criticize it, and change the next attempt. This is not the same as a ReAct thought, which is <em>in-trial</em> working memory. Reflection is <em>across trials</em>.</p>
+  </div>
+</div>
+
+<p>Production note, which 12-factor Factor 10 will repeat: a plan with 100 steps is a context problem, not a bravery problem. Prefer a small agent that finishes a subgoal over a monologue that plans the quarter.<a class="cite" href="https://github.com/humanlayer/12-factor-agents/blob/main/content/factor-10-small-focused-agents.md">[2]</a></p>
+
+<p>Anthropic’s orchestrator–workers (lesson 0003) is planning-as-a-workflow: the lead model decomposes <em>this</em> input, workers execute, the lead synthesizes. You do not need a planning paper to ship that.</p>
+
+<h2>2 · Reflexion: verbal reinforcement learning</h2>
+
+<p><em>Reflexion: Language Agents with Verbal Reinforcement Learning</em> (Shinn, Cassano, Berman, Gopinath, Narasimhan, Yao — NeurIPS 2023).<a class="cite" href="https://arxiv.org/abs/2303.11366">[3]</a></p>
+
+<div class="def">
+<span class="label">Reflexion</span>
+After a trial, convert the feedback signal (pass/fail, a unit test, a score) into a <strong>verbal self-critique</strong>. Store that text in an episodic memory buffer. On the next trial, the actor conditions on those critiques. No weight updates.
+</div>
+
+<p>The paper’s slogan: reinforce language agents through linguistic feedback. A failed HumanEval run plus the failing tests becomes a paragraph — “I mutated the input in place; next time copy first” — that the next attempt can read. Claimed result: 91% pass@1 on HumanEval, vs a GPT-4 baseline at 80%.<a class="cite" href="https://arxiv.org/abs/2303.11366">[3]</a></p>
+
+<p>Two caveats you must carry into an interview:</p>
+<ul>
+<li>The headline number leans on <em>external</em> feedback (unit tests). Self-critique without a ground signal can congratulate a wrong answer. LLMs are mediocre at catching their own mistakes; ablations in the paper explore this.</li>
+<li>Reflections occupy the window. Keep three, not thirty. That is the same compaction instinct as lesson 0004.</li>
+</ul>
+
+<h2>3 · Where this sits in the loop</h2>
+
+<table>
+<thead><tr><th>Verb</th><th>When</th><th>Where it lives</th></tr></thead>
+<tbody>
+<tr><td>Decompose</td><td>Before or as you start</td><td>A plan in context, or an orchestrator’s subtask list</td></tr>
+<tr><td>Reason (ReAct thought)</td><td>Inside a trial, between actions</td><td>The current transcript</td></tr>
+<tr><td>Reflect (Reflexion)</td><td>After a trial fails or ends</td><td>An episodic buffer, re-injected next trial</td></tr>
+</tbody>
+</table>
+
+<div class="interview">
+<span class="label">Interview angle</span>
+“How would your agent get better over retries?” Weak: “I’d finetune.” Strong: if you have a checkable signal (tests, a grader), write a short verbal critique into memory and retry — Reflexion. If you do not have a signal, do not trust the model to mark its own homework. And cap retries (Factor 9).
+</div>
+
+<h2>4 · Retrieval practice</h2>
+
+<div class="quiz">
+
+<div class="q" data-ans="2">
+<p class="qtext">1. Reflexion improves the next trial by…</p>
+<label><input type="radio" name="q1"> Gradient descent on the last trajectory's tokens.</label>
+<label><input type="radio" name="q1"> Replacing the model with a larger one mid-episode.</label>
+<label class="ans"><input type="radio" name="q1"> Storing a verbal critique and conditioning on it next time.</label>
+<div class="feedback ok">Correct. Verbal RL: linguistic feedback in an episodic buffer. Weights do not move.</div>
+<div class="feedback no">No training step. The “gradient” is a paragraph. Option 3.</div>
+</div>
+
+<div class="q" data-ans="0">
+<p class="qtext">2. A ReAct thought and a Reflexion critique differ because…</p>
+<label class="ans"><input type="radio" name="q2"> Thoughts are in-trial working memory; critiques are across trials.</label>
+<label><input type="radio" name="q2"> Thoughts update weights; critiques only update the system prompt.</label>
+<label><input type="radio" name="q2"> Thoughts require two models; critiques require exactly one model.</label>
+<div class="feedback ok">Correct. Same language channel, different timescale. Do not mash the verbs.</div>
+<div class="feedback no">Neither updates weights, and neither requires a model count. Timescale is the split. Option 1.</div>
+</div>
+
+<div class="q" data-ans="1">
+<p class="qtext">3. Why is “just have it reflect” dangerous without a test?</p>
+<label><input type="radio" name="q3"> Reflection tokens are billed at a higher rate than actions.</label>
+<label class="ans"><input type="radio" name="q3"> Without an external signal, the critique can bless a wrong answer.</label>
+<label><input type="radio" name="q3"> Models cannot write critiques unless a framework is installed.</label>
+<div class="feedback ok">Correct. Reflexion’s headline used unit tests as the reward. Self-grading is a weak signal.</div>
+<div class="feedback no">Billing and frameworks are irrelevant. The risk is ungrounded self-congratulation. Option 2.</div>
+</div>
+
+<div class="q" data-ans="2">
+<p class="qtext">4. Best production default for a 40-step plan?</p>
+<label><input type="radio" name="q4"> One agent, one window, the whole plan in the system prompt.</label>
+<label><input type="radio" name="q4"> Disable planning; rely on a single ReAct thought per action.</label>
+<label class="ans"><input type="radio" name="q4"> Split into small focused agents, each with a subgoal.</label>
+<div class="feedback ok">Correct. Factor 10: as context grows, models get lost. Decomposition is also a context strategy.</div>
+<div class="feedback no">A giant plan in one window is how agents wander. Splitting is the plan. Option 3.</div>
+</div>
+
+</div>
+
+<h2>5 · Read next (primary source)</h2>
+
+<p><a href="https://arxiv.org/abs/2303.11366">Shinn et al. — Reflexion</a> (abstract + introduction). For the taxonomy this lesson sits in: Weng, <a href="https://lilianweng.github.io/posts/2023-06-23-agent/">LLM Powered Autonomous Agents</a>, the Planning section only.</p>
+
+<h2>6 · Lock it in</h2>
+<ul>
+<li>Recite the three verbs and their timescales.</li>
+<li>New glossary terms: <em>decomposition</em>, <em>Reflexion</em>, <em>episodic memory</em>, <em>verbal RL</em>.</li>
+</ul>
+
+<p class="reminder">Want a tiny example — fail a function, write a critique, retry? Ask. Keep it on paper; we are still theory-first.</p>
+
+<nav class="lessons-nav">
+<span><a href="./0007-react.html">← 0007 ReAct</a></span>
+<span><a href="./0009-memory.html">0009 Memory →</a></span>
+</nav>
+<script src="../assets/quiz.js"></script>
+</body>
+</html>

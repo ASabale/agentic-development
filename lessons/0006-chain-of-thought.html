@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0006 — Chain-of-thought</title>
+<link rel="stylesheet" href="../assets/lesson.css">
+</head>
+<body>
+
+<p class="kicker">Lesson 0006 · Phase 2: Core patterns · ~10 minutes</p>
+<h1>Chain-of-thought</h1>
+<p class="subtitle">Intermediate steps as test-time compute. What the paper actually claimed.</p>
+
+<div class="win">
+<strong>Your one win today</strong>
+State Wei et al.’s claim without folklore: CoT is few-shot exemplars of intermediate reasoning, it helps <em>sufficiently large</em> models, and it is the substrate under every agent that “thinks out loud.”
+</div>
+
+<h2>1 · What the paper is</h2>
+
+<p><em>Chain-of-Thought Prompting Elicits Reasoning in Large Language Models</em> (Wei, Wang, Schuurmans, Bosma, Ichter, Xia, Chi, Le, Zhou — NeurIPS 2022).<a class="cite" href="https://arxiv.org/abs/2201.11903">[1]</a></p>
+
+<div class="def">
+<span class="label">Chain of thought</span>
+A series of intermediate natural-language reasoning steps that lead to a final answer. CoT prompting = few-shot exemplars of the form ⟨input, chain of thought, output⟩, not a new architecture.
+</div>
+
+<p>The empirical headline: PaLM 540B with eight CoT exemplars hit then-SOTA on GSM8K math word problems, beating even a finetuned GPT-3 that used a verifier.<a class="cite" href="https://arxiv.org/abs/2201.11903">[1]</a> Gains showed up on arithmetic, commonsense, and symbolic tasks.</p>
+
+<p>Why it works, in the paper’s own framing:</p>
+<ol class="steps">
+<li>Multi-step problems can be decomposed; extra tokens of “thinking” are extra test-time compute allocated to hard items.</li>
+<li>The chain is an interpretable window (you can see where it went wrong — you still cannot see the actual activations).</li>
+<li>It applies, in principle, to any task humans solve in language.</li>
+<li>It is elicited from off-the-shelf large models by exemplars. No finetune required.</li>
+</ol>
+
+<h2>2 · What the paper is not</h2>
+
+<p>Three pieces of folklore to kill now, because interviews punish them.</p>
+<ul>
+<li><strong>Not “let’s think step by step.”</strong> That zero-shot trigger is Kojima et al. 2022, a different paper. Wei et al. used few-shot worked examples.</li>
+<li><strong>Not free, not universal.</strong> The original results described CoT as an <em>emergent ability of scale</em>: small models produced fluent but illogical chains, and CoT could <em>hurt</em> them. (Frontier models have since shifted the threshold; the caution remains: do not cargo-cult CoT onto a tiny local model and expect GSM8K magic.)<a class="cite" href="https://arxiv.org/abs/2201.11903">[1]</a></li>
+<li><strong>Not grounded.</strong> CoT reasons inside the model’s weights. If a fact is missing or stale, the chain will still sound sure. That failure is why the next lesson exists.</li>
+</ul>
+
+<h2>3 · Why agents care</h2>
+
+<p>Every later pattern spends tokens on intermediate text on purpose. ReAct (0007) is CoT interleaved with actions. Reflexion (0008) is CoT about a failed trajectory. “Reasoning models” in 2025–26 are CoT trained to run longer before answering.<a class="cite" href="https://simonwillison.net/guides/agentic-engineering-patterns/how-coding-agents-work/">[2]</a> You are not learning a trick. You are learning the substrate.</p>
+
+<div class="interview">
+<span class="label">Interview angle</span>
+“Why have the model think out loud?” Strong: CoT allocates test-time compute to intermediate steps; it is also the only human-readable trace of a decision. Weak: “it makes the model smarter.” Name Wei et al., name the scale caveat, name the grounding limit that ReAct fixes.
+</div>
+
+<h2>4 · Retrieval practice</h2>
+
+<div class="quiz">
+
+<div class="q" data-ans="1">
+<p class="qtext">1. In Wei et al., chain-of-thought prompting means…</p>
+<label><input type="radio" name="q1"> Finetuning on a dataset of equations with a verifier head.</label>
+<label class="ans"><input type="radio" name="q1"> Few-shot exemplars that include intermediate reasoning steps.</label>
+<label><input type="radio" name="q1"> A special decoding mode that samples only numeric tokens.</label>
+<div class="feedback ok">Correct. ⟨input, chain, output⟩ exemplars in the prompt. No new weights, no special decoder.</div>
+<div class="feedback no">The paper's method is prompting with worked examples, not finetuning or a numeric decoder. Option 2.</div>
+</div>
+
+<div class="q" data-ans="2">
+<p class="qtext">2. A real limit of CoT, as later used against it by ReAct?</p>
+<label><input type="radio" name="q2"> It cannot be written in English; it requires a formal language.</label>
+<label><input type="radio" name="q2"> It only works on models smaller than one billion parameters.</label>
+<label class="ans"><input type="radio" name="q2"> The chain is ungrounded — it cannot fetch missing facts.</label>
+<div class="feedback ok">Correct. CoT is a static black box over internal knowledge. That is the gap ReAct fills with actions.</div>
+<div class="feedback no">CoT is English (or any language), and the original claim was it helps *large* models. The limit is grounding. Option 3.</div>
+</div>
+
+<div class="q" data-ans="0">
+<p class="qtext">3. “Let’s think step by step” with no exemplars is…</p>
+<label class="ans"><input type="radio" name="q3"> Zero-shot CoT (Kojima et al.), not the Wei et al. method.</label>
+<label><input type="radio" name="q3"> Exactly the protocol of the 2022 NeurIPS CoT paper.</label>
+<label><input type="radio" name="q3"> Illegal under the GSM8K benchmark's original rules.</label>
+<div class="feedback ok">Correct. Cite the right paper. Wei = few-shot worked examples. Kojima = zero-shot trigger. Both exist; they are not the same claim.</div>
+<div class="feedback no">Wei et al. used few-shot exemplars. The zero-shot trigger is a later, different result. Option 1.</div>
+</div>
+
+<div class="q" data-ans="2">
+<p class="qtext">4. CoT helps agents because it…</p>
+<label><input type="radio" name="q4"> Replaces tools; a long enough chain is a database lookup.</label>
+<label><input type="radio" name="q4"> Shrinks the context window by compressing prior turns.</label>
+<label class="ans"><input type="radio" name="q4"> Spends extra tokens to decompose the next decision.</label>
+<div class="feedback ok">Correct. Test-time compute. Tools still do the world's work. Compaction is a different lesson.</div>
+<div class="feedback no">CoT is not retrieval and not compaction. It is extra reasoning tokens before an answer or a tool call. Option 3.</div>
+</div>
+
+</div>
+
+<h2>5 · Read next (primary source)</h2>
+
+<p><a href="https://arxiv.org/pdf/2201.11903">Wei et al. — CoT paper, PDF</a>. Read the abstract, §1, and §2 (about 12 minutes). Skip the tables on a first pass; you need the claim, not GSM8K decimals.</p>
+
+<h2>6 · Lock it in</h2>
+<ul>
+<li>Write, from memory: “CoT = few-shot intermediate steps; helps large models; ungrounded.”</li>
+<li>New glossary terms: <em>chain of thought</em>, <em>test-time compute</em>, <em>exemplar</em>.</li>
+</ul>
+
+<p class="reminder">If you want to see a CoT trace succeed and then hallucinate a date, ask. We can walk a short example next.</p>
+
+<nav class="lessons-nav">
+<span><a href="./0005-tool-design.html">← 0005 Tool design</a></span>
+<span><a href="./0007-react.html">0007 ReAct →</a></span>
+</nav>
+<script src="../assets/quiz.js"></script>
+</body>
+</html>

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0007 — ReAct</title>
+<link rel="stylesheet" href="../assets/lesson.css">
+</head>
+<body>
+
+<p class="kicker">Lesson 0007 · Phase 2: Core patterns · ~12 minutes</p>
+<h1>ReAct</h1>
+<p class="subtitle">Thought, action, observation — interleaved. The pattern every tool loop implements.</p>
+
+<div class="win">
+<strong>Your one win today</strong>
+Explain ReAct as Yao et al. wrote it: reasoning traces and actions in one generation, so thoughts can revise the plan and actions can ground the thoughts. Then map it onto the five-beat loop you already know.
+</div>
+
+<h2>1 · The claim</h2>
+
+<p><em>ReAct: Synergizing Reasoning and Acting in Language Models</em> (Yao, Zhao, Yu, Du, Shafran, Narasimhan, Cao — ICLR 2023).<a class="cite" href="https://arxiv.org/abs/2210.03629">[1]</a></p>
+
+<p>Until ReAct, two literatures sat apart. CoT (lesson 0006) produced reasoning traces but never left the model’s head — hallucination and error propagation included. Acting papers produced action sequences but no verbal working memory. ReAct asks the model for both, interleaved:</p>
+
+<figure class="aid">
+<img src="../assets/figures/react-trace.svg" alt="A thought leads to an action, which returns an observation.">
+<figcaption>The ReAct trace shape from Yao et al.: reason, act, then ground the next thought in what came back.<a class="cite" href="https://arxiv.org/abs/2210.03629">[1]</a></figcaption>
+</figure>
+
+<pre><code>Thought: I need the year of the treaty. Search Wikipedia.
+Action: Search[Treaty of Versailles]
+Observation: The Treaty of Versailles, signed 28 June 1919…
+Thought: The year is 1919. I can answer.
+Action: Finish[1919]</code></pre>
+
+<div class="def">
+<span class="label">ReAct</span>
+Prompt LLMs to generate <strong>reasoning traces and task-specific actions in an interleaved manner</strong>. Thoughts induce, track, and update plans and handle exceptions. Actions query an external environment so reasoning can be grounded.
+</div>
+
+<p>On HotpotQA and FEVER, ReAct with a Wikipedia API beat Act-only and was competitive with CoT, while avoiding CoT’s ungrounded hallucinations. On ALFWorld and WebShop, one- or two-shot ReAct beat imitation/RL methods trained on 10³–10⁵ tasks, by +34% and +10% success respectively.<a class="cite" href="https://arxiv.org/abs/2210.03629">[1]</a></p>
+
+<p>The ablation that matters in interviews: <em>ReAct beats Act-only</em>. Removing the <code>Thought:</code> line hurts. Reasoning is not decoration; it is how the model keeps a working plan across actions.</p>
+
+<h2>2 · ReAct is a prompt, not a framework</h2>
+
+<p>The paper’s implementation is a prompt template over PaLM-540B / GPT-3, plus a tiny action space (Search, Lookup, Finish; or game actions). There is no “ReAct library” in the result. When people say “a ReAct agent” today they mean: the tool loop from lesson 0002, with the model allowed (or encouraged) to emit reasoning tokens before a tool call.</p>
+
+<p>Modern APIs folded the <code>Action:</code> line into structured <code>tool_calls</code>. The <code>Thought:</code> line became “reasoning” / “thinking” traces, or ordinary assistant text. The synergy the paper named did not go away.</p>
+
+<div class="loop">
+  <div class="box model"><small>Thought</small>Revise the plan;<br>notice exceptions</div>
+  <div class="arrow">→</div>
+  <div class="box model"><small>Action</small>Emit a tool call</div>
+  <div class="arrow">→</div>
+  <div class="box harness"><small>Observation</small>Environment result<br>appended to context</div>
+  <div class="span">repeat until Finish — this is lesson 0002, with thinking made explicit</div>
+</div>
+
+<h2>3 · When ReAct is the wrong default</h2>
+
+<p>ReAct is an <em>agent</em> pattern. If the steps are enumerable, use a workflow (lesson 0003). If the model’s thoughts are leaking into a user-facing channel you did not intend, hide them — thoughts are for the model and for you, not always for the customer. And thoughts cost tokens. On a trivial lookup, Act-only is cheaper and fine.</p>
+
+<div class="interview">
+<span class="label">Interview angle</span>
+“What’s ReAct?” Weak: “it’s LangChain.” Strong: Yao et al., ICLR 2023; interleaved thought/action/observation; thoughts maintain the plan, actions ground the thoughts; it is a prompting pattern that modern tool APIs implement as the default loop. Name the Act-only ablation.
+</div>
+
+<h2>4 · Retrieval practice</h2>
+
+<div class="quiz">
+
+<div class="q" data-ans="1">
+<p class="qtext">1. ReAct’s synergy, in the paper’s words, is that…</p>
+<label><input type="radio" name="q1"> Two models vote, and the majority action is executed once.</label>
+<label class="ans"><input type="radio" name="q1"> Thoughts update plans; actions ground those thoughts externally.</label>
+<label><input type="radio" name="q1"> Weights are updated from each observation by backprop.</label>
+<div class="feedback ok">Correct. Reason to act, act to reason. No weight updates — it is prompting.</div>
+<div class="feedback no">Not voting, not training. Interleaved traces and actions. Option 2.</div>
+</div>
+
+<div class="q" data-ans="2">
+<p class="qtext">2. Why does ReAct beat vanilla CoT on factoid QA with a Wikipedia tool?</p>
+<label><input type="radio" name="q2"> CoT cannot emit English; ReAct invented a new token language.</label>
+<label><input type="radio" name="q2"> ReAct finetunes the model on Wikipedia each episode.</label>
+<label class="ans"><input type="radio" name="q2"> Actions let it fetch facts CoT would have to hallucinate.</label>
+<div class="feedback ok">Correct. The paper’s claim: ReAct overcomes hallucination and error propagation in CoT by interacting with a simple Wikipedia API.</div>
+<div class="feedback no">Both emit English; neither trains mid-episode. Grounding is the point. Option 3.</div>
+</div>
+
+<div class="q" data-ans="0">
+<p class="qtext">3. Today’s <code>tool_calls</code> APIs relate to ReAct how?</p>
+<label class="ans"><input type="radio" name="q3"> They structured the Action line; Thought is now reasoning tokens.</label>
+<label><input type="radio" name="q3"> They replaced ReAct; thought/action loops are deprecated.</label>
+<label><input type="radio" name="q3"> They only work if you still print the words Thought and Action.</label>
+<div class="feedback ok">Correct. Same synergy, less string parsing. You do not need the literal labels.</div>
+<div class="feedback no">The loop is the default, not deprecated, and labels are optional. Option 1.</div>
+</div>
+
+<div class="q" data-ans="2">
+<p class="qtext">4. Act-only (no Thought line) is worse in the paper because…</p>
+<label><input type="radio" name="q4"> APIs refuse to execute a tool unless a thought is present.</label>
+<label><input type="radio" name="q4"> Observations cannot be parsed without a preceding thought tag.</label>
+<label class="ans"><input type="radio" name="q4"> Without verbal working memory, the plan is not maintained.</label>
+<div class="feedback ok">Correct. The ablation: ReAct outperforms Act consistently. Thoughts are how the model tracks and revises the plan.</div>
+<div class="feedback no">Nothing in the API requires the word Thought. The failure is missing working memory. Option 3.</div>
+</div>
+
+</div>
+
+<h2>5 · Read next (primary source)</h2>
+
+<p><a href="https://arxiv.org/pdf/2210.03629">Yao et al. — ReAct, PDF</a>. Read the abstract, §1, and the first page of §2 (Figure 1). Project page with trajectories: <a href="https://react-lm.github.io">react-lm.github.io</a>.</p>
+
+<h2>6 · Lock it in</h2>
+<ul>
+<li>From memory, write a four-line Thought / Action / Observation / Thought trace for “what year was the Treaty of Versailles?”</li>
+<li>New glossary terms: <em>ReAct</em>, <em>reasoning trace</em>, <em>grounding</em>.</li>
+</ul>
+
+<p class="reminder">If you want to contrast a CoT-only hallucination with a ReAct trace on the same question, ask. We can do it in chat without opening a notebook.</p>
+
+<nav class="lessons-nav">
+<span><a href="./0006-chain-of-thought.html">← 0006 Chain-of-thought</a></span>
+<span><a href="./0008-planning-and-reflection.html">0008 Planning and reflection →</a></span>
+</nav>
+<script src="../assets/quiz.js"></script>
+</body>
+</html>

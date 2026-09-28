@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0014 — Twelve-factor agents</title>
+<link rel="stylesheet" href="../assets/lesson.css">
+</head>
+<body>
+
+<p class="kicker">Lesson 0014 · Phase 3: Production · ~14 minutes</p>
+<h1>Twelve-factor agents</h1>
+<p class="subtitle">Own your prompts, your window, and your control flow. The rest is commentary.</p>
+
+<div class="win">
+<strong>Your one win today</strong>
+Recite the twelve factors as a production checklist, and compress them into three ownership claims you can defend on a whiteboard.
+</div>
+
+<h2>1 · Why this list exists</h2>
+
+<p>Dex Horthy wrote <em>12-Factor Agents</em> after shipping, after trying the frameworks, after watching founders who were doing well mostly <em>not</em> use those frameworks. The uncomfortable observation: products billed as agents are often mostly deterministic software with LLM steps at the magical points. The list is the engineering that makes that mix reliable.<a class="cite" href="https://github.com/humanlayer/12-factor-agents">[1]</a></p>
+
+<p>It is opinion, not a spec. It rhymes with Anthropic (“start with the API; patterns are a few lines of code”) and with LangGraph’s pitch (the loop is easy; durable execution is not). Use it as a review checklist, not as scripture.</p>
+
+<h2>2 · The twelve</h2>
+
+<p>Print the <a href="../reference/twelve-factors.html">one-pager</a>. What follows is the memory palace — three ownership claims, four factors each.</p>
+
+<h3>Own the tokens</h3>
+<ol>
+<li><strong>Natural language → tool calls.</strong> The atomic trick: a sentence becomes structured intent. Deterministic code takes it from there.</li>
+<li><strong>Own your prompts.</strong> If a framework hides the prompt, you cannot debug or eval. The string is your source code.</li>
+<li><strong>Own your context window.</strong> “Here’s what happened; what’s next?” Pack it yourself (lesson 0004).</li>
+<li><strong>Tools are structured outputs.</strong> JSON in; your switch decides (lesson 0011).</li>
+</ol>
+
+<h3>Own the lifetime</h3>
+<ol start="5">
+<li><strong>Unify execution state and business state.</strong> One event log, not a conversation object plus a ticket object that drift.</li>
+<li><strong>Launch / pause / resume with simple APIs.</strong> Agents must sleep. Serialize the thread, wake on a webhook.</li>
+<li><strong>Contact humans with tool calls.</strong> HITL is an intent (lesson 0012).</li>
+<li><strong>Own your control flow.</strong> The <code>while</code> is yours: which intents continue, which break, which wait for approval <em>before</em> invocation.</li>
+</ol>
+
+<h3>Own the failure</h3>
+<ol start="9">
+<li><strong>Compact errors into the window.</strong> Self-heal with a short observation; cap retries; then escalate.</li>
+<li><strong>Small, focused agents.</strong> 3–20 steps. As context grows, models get lost. Grow scope only as evals allow.</li>
+<li><strong>Trigger from anywhere.</strong> Slack, email, cron, webhook. The agent is a service, not a chat box.</li>
+<li><strong>Make the agent a stateless reducer.</strong> <code>next = reduce(events)</code>. State lives outside the process. This is Factor 12 “mostly for fun,” and also how you survive a restart.</li>
+</ol>
+
+<div class="def">
+<span class="label">Whiteboard compression</span>
+<strong>Own tokens. Own lifetime. Own failure.</strong> If a design violates one of those, it will hurt in production even if the demo was pretty.
+</div>
+
+<div class="interview">
+<span class="label">Interview angle</span>
+“Would you use LangChain?” Translate to 12-factor. If the framework lets you own prompts, context, and the pause-before-invoke seam, it may pay (lesson 0016). If it hides those, you are renting a demo. Horthy’s founders were rolling the stack themselves.
+</div>
+
+<h2>3 · Retrieval practice</h2>
+
+<div class="quiz">
+
+<div class="q" data-ans="1">
+<p class="qtext">1. The three ownership claims that compress the twelve?</p>
+<label><input type="radio" name="q1"> Own GPUs, own embeddings, own the fine-tune cluster.</label>
+<label class="ans"><input type="radio" name="q1"> Own tokens, own lifetime, own failure.</label>
+<label><input type="radio" name="q1"> Own the chat UI, own the logo, own the system prompt only.</label>
+<div class="feedback ok">Correct. Tokens (1–4), lifetime (5–8), failure (9–12). Weights-level work is out of this course’s scope.</div>
+<div class="feedback no">Not training, not branding. Ownership of tokens, lifetime, failure. Option 2.</div>
+</div>
+
+<div class="q" data-ans="2">
+<p class="qtext">2. Factor 10 exists because…</p>
+<label><input type="radio" name="q2"> Small models cannot legally call more than ten tools.</label>
+<label><input type="radio" name="q2"> Frameworks crash when a graph has more than ten nodes.</label>
+<label class="ans"><input type="radio" name="q2"> Long trajectories fill the window and the model loses the plot.</label>
+<div class="feedback ok">Correct. Context rot, lesson 0004. Small agents are a context strategy, not a fashion.</div>
+<div class="feedback no">No legal cap, no framework crash. The limit is attention. Option 3.</div>
+</div>
+
+<div class="q" data-ans="0">
+<p class="qtext">3. “Stateless reducer” means…</p>
+<label class="ans"><input type="radio" name="q3"> <code>next = reduce(events)</code>; the process holds nothing durable.</label>
+<label><input type="radio" name="q3"> The model has no tools; it only classifies sentiment.</label>
+<label><input type="radio" name="q3"> You delete logs after every turn to save money on tokens.</label>
+<div class="feedback ok">Correct. The step function is pure-ish; state is the event log you persist. Restarts become cheap.</div>
+<div class="feedback no">Not tool-less, not log-less. State lives outside the process. Option 1.</div>
+</div>
+
+<div class="q" data-ans="2">
+<p class="qtext">4. Horthy’s empirical nudge toward this list was that…</p>
+<label><input type="radio" name="q4"> Frameworks were banned at YC for legal reasons.</label>
+<label><input type="radio" name="q4"> Every production agent was a fully autonomous 100-step loop.</label>
+<label class="ans"><input type="radio" name="q4"> Strong teams were rolling stacks; “agents” were mostly software.</label>
+<div class="feedback ok">Correct. LLM steps at the magical points, deterministic code everywhere else. Design for that mix.</div>
+<div class="feedback no">No ban, and production is not 100-step autonomy. Mostly software. Option 3.</div>
+</div>
+
+</div>
+
+<h2>4 · Read next (primary source)</h2>
+
+<p>The README: <a href="https://github.com/humanlayer/12-factor-agents">12-Factor Agents</a>. Then pick one factor you feel weakest on and read its page (Factor 3 and Factor 8 are the usual holes).</p>
+
+<h2>5 · Lock it in</h2>
+<ul>
+<li>Recite 12 names. Then the 3-claim compression. Cover the page.</li>
+<li>Phase 3 complete. You can now talk production without having shipped — still go build (Phase 5) before you claim it on a resume.</li>
+</ul>
+
+<p class="reminder">Want me to 12-factor-review a design you’re carrying? Sketch it. We’ll walk the checklist in chat.</p>
+
+<nav class="lessons-nav">
+<span><a href="./0013-evaluating-agents.html">← 0013 Evals</a></span>
+<span><a href="./0015-multi-agent.html">0015 Multi-agent →</a></span>
+</nav>
+<script src="../assets/quiz.js"></script>
+</body>
+</html>

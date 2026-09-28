@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0002 — Tools in a loop</title>
+<link rel="stylesheet" href="../assets/lesson.css">
+</head>
+<body>
+
+<p class="kicker">Lesson 0002 · Phase 1: Foundations · ~12 minutes</p>
+<h1>Tools in a loop</h1>
+<p class="subtitle">The anatomy of one step: call → execute → observe.</p>
+
+<div class="win">
+<strong>Your one win today</strong>
+Draw the five-step tool-calling flow from memory, and name which side — model or harness — does each step. This is the entire runtime of every agent you will ever ship.
+</div>
+
+<h2>1 · The model never touches the world</h2>
+
+<p>An <a href="../reference/glossary.html">LLM</a> produces tokens. It cannot search, refund, or read a file. When it “uses a tool,” it is emitting a <em>request</em> — a structured blob that says “please run this function with these arguments.” Your code, the <span class="strong">harness</span>, is what actually runs.<a class="cite" href="https://developers.openai.com/api/docs/guides/function-calling">[1]</a></p>
+
+<div class="def">
+<span class="label">Harness</span>
+The software around the model. It sends prompts, parses tool calls, executes functions, appends results, and decides whether to loop again. The model is a stateless function. The harness is the program.
+</div>
+
+<p>OpenAI is blunt about the split of labor: <em>“The API will not actually execute any function calls. It is up to developers to execute function calls using model outputs.”</em><a class="cite" href="https://developers.openai.com/cookbook/examples/how_to_call_functions_with_chat_models">[2]</a> Anthropic says the same from the other side: Claude never sees your implementation — only the schema you provided and the result you returned.<a class="cite" href="https://simonwillison.net/guides/agentic-engineering-patterns/how-coding-agents-work/">[3]</a></p>
+
+<h2>2 · One step, five beats</h2>
+
+<p>OpenAI documents the canonical flow as five beats. Memorize this sequence; every framework is a costume on top of it.<a class="cite" href="https://developers.openai.com/api/docs/guides/function-calling">[1]</a></p>
+
+<figure class="aid">
+<img src="../assets/figures/five-beats.svg" alt="Five boxes in a row: you send context, the model returns a tool call, the harness runs it, you append the result, the model answers or calls again.">
+<figcaption>OpenAI’s function-calling flow, redrawn. Step 3 is the only beat where the world changes.<a class="cite" href="https://developers.openai.com/api/docs/guides/function-calling">[1]</a></figcaption>
+</figure>
+
+<ol class="steps">
+<li><strong>You call the model with tools.</strong> The request includes the conversation so far, plus a list of tool definitions (name, description, JSON schema for arguments).</li>
+<li><strong>The model returns a tool call</strong> — not an answer. Name of the function, arguments as JSON, and an id so you can match the result later.</li>
+<li><strong>Your harness executes the function</strong> with those arguments. This is ordinary code: a weather API, a SQL query, a file read.</li>
+<li><strong>You call the model again</strong>, appending the original call <em>and</em> the tool’s output, tagged with the same id.</li>
+<li><strong>The model either answers or calls again.</strong> If it answers, the loop stops. If it emits another tool call, you go back to step 3.</li>
+</ol>
+
+<div class="loop">
+  <div class="box model"><small>Model</small>Emit tool call<br><code>get_weather("Paris")</code></div>
+  <div class="arrow">→</div>
+  <div class="box harness"><small>Harness</small>Execute the function<br>return <code>{"temp": 25}</code></div>
+  <div class="arrow">↓</div>
+  <div class="span">append observation to context, call the model again</div>
+  <div class="box harness"><small>Harness</small>Feed result back<br>same <code>call_id</code></div>
+  <div class="arrow">←</div>
+  <div class="box model"><small>Model</small>Answer or call again<br>“25°C in Paris.”</div>
+</div>
+
+<p>Willison’s teaching version of the same loop is even plainer: the system prompt tells the model how to emit a tool tag, the harness regexes (or, in production, parses JSON) that tag out, runs the function, and stitches the result into the next prompt.<a class="cite" href="https://simonwillison.net/guides/agentic-engineering-patterns/how-coding-agents-work/">[3]</a> Modern APIs hide the tags behind <code>tool_calls</code> / <code>tool_use</code> fields. The mechanics did not change.</p>
+
+<h2>3 · Pairing results by id</h2>
+
+<p>The model may request several tools in one turn. Each call has an id (<code>call_id</code> on OpenAI, <code>tool_use_id</code> on Anthropic). You must return one result per call, even if you skipped or failed it.<a class="cite" href="https://developers.openai.com/api/docs/guides/function-calling">[1]</a> Dropping a result is how loops desynchronize — the model thinks a tool is still in flight.</p>
+
+<div class="def">
+<span class="label">Observation</span>
+The tool’s output, fed back into context. It can be JSON, plain text, or a compact error. Errors are observations too — not exceptions you hide from the model. That idea becomes <a href="./0014-twelve-factor-agents.html">Factor 9</a> later.
+</div>
+
+<h2>3b · Walk it, one beat at a time</h2>
+<p>The five beats are cheap to nod at and expensive to <em>feel</em>. Step through a scripted weather clerk. Nothing here calls an API — the model is fake; the split of labor is real.</p>
+<div id="loop-sim" class="sim"></div>
+<script src="../assets/loop-sim.js"></script>
+
+<h2>4 · Why this is the whole runtime</h2>
+
+<p>Simon Willison’s consensus definition from lesson 0001 — <em>an LLM agent runs tools in a loop to achieve a goal</em> — is this five-beat cycle with a stopping condition.<a class="cite" href="https://simonwillison.net/2025/Sep/18/agents/">[4]</a> Memory, planning, multi-agent, frameworks: all of them either (a) change what goes into the context before step 1, or (b) change what the harness does at step 3. None of them replace the loop.</p>
+
+<div class="interview">
+<span class="label">Interview angle</span>
+“Walk me through what happens when an agent calls a tool.” The strong answer names the five beats, says the API does not execute your function, and mentions pairing by id. Bonus: “the model is stateless; the harness holds the transcript.”
+</div>
+
+<h2>5 · Retrieval practice</h2>
+
+<p>Cover section 2. Four questions; instant feedback. Equal-length options, no formatting tells.</p>
+
+<div class="quiz">
+
+<div class="q" data-ans="2">
+<p class="qtext">1. Who actually runs the function when a model “calls a tool”?</p>
+<label><input type="radio" name="q1"> The model provider's GPU, as a side effect of sampling.</label>
+<label><input type="radio" name="q1"> The JSON schema itself, which binds names to code.</label>
+<label class="ans"><input type="radio" name="q1"> Your harness, using the arguments the model emitted.</label>
+<div class="feedback ok">Correct. The API returns a request. Your code executes. OpenAI: “The API will not actually execute any function calls.”</div>
+<div class="feedback no">The model emits a request, not an RPC. Execution is always your harness (for client tools). Option 3.</div>
+</div>
+
+<div class="q" data-ans="0">
+<p class="qtext">2. After executing a tool, what must you send back to the model?</p>
+<label class="ans"><input type="radio" name="q2"> The tool output, tagged with the original call's id.</label>
+<label><input type="radio" name="q2"> Only a new user prompt that restates the goal.</label>
+<label><input type="radio" name="q2"> A fresh system prompt that drops prior tool noise.</label>
+<div class="feedback ok">Correct. Pair by <code>call_id</code> / <code>tool_use_id</code>. The transcript of call + result is the model's short-term memory of that step.</div>
+<div class="feedback no">The result has to be bound to the call that produced it. Dropping history, or sending a new goal without the observation, breaks the loop. Option 1.</div>
+</div>
+
+<div class="q" data-ans="1">
+<p class="qtext">3. A model emits two tool calls in one turn. You run only the first. What should you do?</p>
+<label><input type="radio" name="q3"> Reply with the one result; the unused call is discarded.</label>
+<label class="ans"><input type="radio" name="q3"> Return one result per call, even if the second is an error.</label>
+<label><input type="radio" name="q3"> Start a new conversation so the unused call cannot confuse it.</label>
+<div class="feedback ok">Correct. Every tool call needs a matching observation, including skipped or failed ones. Otherwise the model's view of the world is missing a beat.</div>
+<div class="feedback no">Desynchronizing the transcript is how agents go off the rails. One result per call, always. Option 2.</div>
+</div>
+
+<div class="q" data-ans="2">
+<p class="qtext">4. Which statement is the clean split of labor?</p>
+<label><input type="radio" name="q4"> The model holds state; the harness only logs tokens.</label>
+<label><input type="radio" name="q4"> The model executes tools; the harness only rates results.</label>
+<label class="ans"><input type="radio" name="q4"> The model decides; the harness executes and loops.</label>
+<div class="feedback ok">Correct. Decide vs. do. That split is the whole architecture. Keep it when we add memory, HITL, and multi-agent.</div>
+<div class="feedback no">Models are stateless and cannot execute your functions. Decision is the model's; execution and looping are yours. Option 3.</div>
+</div>
+
+</div>
+
+<h2>6 · Read next (primary source)</h2>
+
+<p><a href="https://developers.openai.com/api/docs/guides/function-calling">OpenAI — Function calling</a>. Read “How it works” and “The tool calling flow.” ~15 minutes. Optional: Willison’s <a href="https://simonwillison.net/guides/agentic-engineering-patterns/how-coding-agents-work/">How coding agents work</a> (the teaching version of the same loop, ~10 min).</p>
+
+<h2>7 · Lock it in</h2>
+<ul>
+<li>From memory: list the five beats. Cover this page.</li>
+<li>New glossary terms: <em>harness</em>, <em>tool call</em>, <em>observation</em>, <em>call id</em>. They live in the <a href="../reference/glossary.html">glossary</a>.</li>
+<li>Print the <a href="../reference/agent-loop.html">one-page loop</a>. Recite it before lesson 0003.</li>
+</ul>
+
+<p class="reminder">Stuck on why the model can't just “run the tool itself,” or how ids work across two turns? Ask in chat. Probing the split of labor is the whole point of this lesson.</p>
+
+<nav class="lessons-nav">
+<span><a href="./0001-what-is-an-agent.html">← 0001 What is an agent?</a></span>
+<span><a href="./0003-workflows-vs-agents.html">0003 Workflows vs agents →</a></span>
+</nav>
+<script src="../assets/quiz.js"></script>
+</body>
+</html>

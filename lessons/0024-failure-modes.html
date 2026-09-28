@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0024 — Failure modes</title>
+<link rel="stylesheet" href="../assets/lesson.css">
+</head>
+<body>
+
+<p class="kicker">Lesson 0024 · Phase 3 depth · ~12 minutes</p>
+<h1>Failure modes</h1>
+<p class="subtitle">Agents fail in named ways. Interviews reward the catalog, not optimism.</p>
+
+<div class="win">
+<strong>Your one win today</strong>
+List six failure modes from memory, and for each name whether the fix is context, ACI, control flow, or eval. This is the other half of “how would you design it?”
+</div>
+
+<h2>1 · Weng’s three, still true</h2>
+
+<p>Lilian Weng, 2023, closing her agent survey with limitations that have not expired:<a class="cite" href="https://lilianweng.github.io/posts/2023-06-23-agent/">[1]</a></p>
+<ol>
+<li><strong>Finite context.</strong> The bandwidth is the window. Vector stores are not full attention (lessons 0004, 0009).</li>
+<li><strong>Long-horizon planning is weak.</strong> Models do not adjust plans under surprise as well as a person. Factor 10 is the production response: smaller jobs.</li>
+<li><strong>Natural language is a flaky interface.</strong> Formatting errors, refusals, “rebellious” failures to follow the schema. A shocking fraction of demo code is parsers. Structured Outputs (0011) exist because of this row.</li>
+</ol>
+
+<h2>2 · The production catalog</h2>
+
+<p>Add the failures you now have vocabulary for:</p>
+<table>
+<thead><tr><th>Mode</th><th>What you see</th><th>First lever</th></tr></thead>
+<tbody>
+<tr><td>Hallucinated fact</td><td>Fluent wrong. CoT without a tool.</td><td>Ground with a tool / RAG (0007, 0010). Grade citations.</td></tr>
+<tr><td>Wrong tool / wrong args</td><td>ACI miss; overlapping tools; vague descriptions.</td><td>Fewer tools, poka-yoke schema, compact error, retry cap (0005, Factor 9).</td></tr>
+<tr><td>Loop / spin</td><td>Same failing call, or goal never declared done.</td><td>Step cap, consecutive-error cap, escalate (Factors 8–10).</td></tr>
+<tr><td>Early victory</td><td>Declares done with tests red. Named in long-running harnesses.</td><td>Verify-before-exit in the harness, not in the prompt alone (0017).</td></tr>
+<tr><td>Goal hijack</td><td>A retrieved page or email changes the job. Injection (0027).</td><td>Treat observations as data; HITL on writes; least privilege.</td></tr>
+<tr><td>Silent side effect</td><td>Tool ran; transcript lost; no human saw the args.</td><td>Pair by id; traces (0026); interrupt before invoke (0012).</td></tr>
+<tr><td>Grader bug</td><td>Scores crater; agent is fine.</td><td>Read transcripts before rewriting the agent (0013).</td></tr>
+</tbody>
+</table>
+
+<p>ReAct’s own analysis of success and failure (the paper’s appendix) is worth knowing exists: search-fail vs reasoning-fail vs hallucination on HotpotQA. The move is to <em>name which</em>, not to say “we’ll add more agents.”<a class="cite" href="https://arxiv.org/abs/2210.03629">[2]</a></p>
+
+<div class="interview">
+<span class="label">Interview angle</span>
+After you draw the architecture they will ask “how does this fail?” Answer in this catalog, one sentence each, with a lever. If you only list hallucination you sound like 2023. If you include spin, early victory, injection, and grader bugs you sound like you’ve read a postmortem.
+</div>
+
+<h2>3 · Retrieval practice</h2>
+
+<div class="quiz">
+
+<div class="q" data-ans="2">
+<p class="qtext">1. Weng’s “reliability of the NL interface” is why we…</p>
+<label><input type="radio" name="q1"> Ban tools; language is enough if the prompt is long.</label>
+<label><input type="radio" name="q1"> Train a new tokenizer that cannot emit JSON.</label>
+<label class="ans"><input type="radio" name="q1"> Constrain outputs with schemas and still write parsers.</label>
+<div class="feedback ok">Correct. Structured Outputs help shape. Semantic misses and refusals remain. Harness code stays.</div>
+<div class="feedback no">Don't ban tools, don't blame the tokenizer. Schemas + parsers. Option 3.</div>
+</div>
+
+<div class="q" data-ans="0">
+<p class="qtext">2. Early victory is fixed first by…</p>
+<label class="ans"><input type="radio" name="q2"> A harness check (tests, invariants) that can refuse “done.”</label>
+<label><input type="radio" name="q2"> Asking the model to be more humble in the system prompt only.</label>
+<label><input type="radio" name="q2"> Spawning a critic agent with no access to the tests.</label>
+<div class="feedback ok">Correct. 0017: verify before exit. Prompts help; unenforced humility does not.</div>
+<div class="feedback no">Prompt-only humility and ungrounded critics are weak. Check in code. Option 1.</div>
+</div>
+
+<div class="q" data-ans="1">
+<p class="qtext">3. Same tool errors three times. Next?</p>
+<label><input type="radio" name="q3"> Unbounded retry — self-heal always eventually works.</label>
+<label class="ans"><input type="radio" name="q3"> Hit the consecutive-error cap; compact, stop, or escalate.</label>
+<label><input type="radio" name="q3"> Delete the tool so the model cannot fail that way again.</label>
+<div class="feedback ok">Correct. Factor 9. Spin is a named mode. Caps are control flow, not vibes.</div>
+<div class="feedback no">Unbounded retry is the bug. Deleting the tool dodges the job. Option 2.</div>
+</div>
+
+<div class="q" data-ans="2">
+<p class="qtext">4. Best one-line after drawing an architecture?</p>
+<label><input type="radio" name="q4"> “LLMs hallucinate, so we picked a bigger model.”</label>
+<label><input type="radio" name="q4"> “It cannot fail; Structured Outputs guarantee truth.”</label>
+<label class="ans"><input type="radio" name="q4"> “Here is how it spins, hijacks, exits early, and how we catch that.”</label>
+<div class="feedback ok">Correct. Catalog + levers. Bigger is not a failure mode, and schema ≠ truth (0011).</div>
+<div class="feedback no">Hallucination-only and “cannot fail” are junior. Option 3.</div>
+</div>
+
+</div>
+
+<h2>4 · Read next (primary source)</h2>
+
+<p>Weng, <a href="https://lilianweng.github.io/posts/2023-06-23-agent/">LLM Powered Autonomous Agents</a> — the Challenges section (~5 min). Then skim ReAct’s failure-mode appendix if you still have appetite: <a href="https://arxiv.org/abs/2210.03629">arXiv:2210.03629</a>.</p>
+
+<h2>5 · Lock it in</h2>
+<ul>
+<li>Six modes, four lever types (context, ACI, control flow, eval). Cover and recite.</li>
+<li>New glossary terms: <em>early victory</em>, <em>goal hijack</em>, <em>spin</em>.</li>
+</ul>
+
+<p class="reminder">Pick one product you use. Name two failure modes it probably has. We’ll map levers in chat — that is interview practice.</p>
+
+<nav class="lessons-nav">
+<span><a href="./0023-tokens-cost-and-latency.html">← 0023 Cost</a></span>
+<span><a href="./0025-prompt-caching.html">0025 Prompt caching →</a></span>
+</nav>
+<script src="../assets/quiz.js"></script>
+</body>
+</html>

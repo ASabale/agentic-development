@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0027 — Prompt injection</title>
+<link rel="stylesheet" href="../assets/lesson.css">
+</head>
+<body>
+
+<p class="kicker">Lesson 0027 · Phase 3 depth · ~12 minutes</p>
+<h1>Prompt injection</h1>
+<p class="subtitle">Instructions and data share a channel. Tool observations are attacker-controlled. Plan for that.</p>
+
+<div class="win">
+<strong>Your one win today</strong>
+Distinguish direct vs indirect injection, and treat every tool result as <em>untrusted data</em> — the OWASP agent-specific case that 0012’s layered guardrails were waiting for.
+</div>
+
+<h2>1 · The architectural hole</h2>
+
+<p>OWASP: prompt injection exploits the usual LLM design where natural language instructions and data are processed together without a hard separation.<a class="cite" href="https://cheatsheetseries.owasp.org/cheatsheets/LLM_Prompt_Injection_Prevention_Cheat_Sheet.html">[1]</a> SQL injection had parameterization. This does not, not really. The model cannot reliably tell “the user said” from “the webpage said IGNORE PREVIOUS INSTRUCTIONS.”</p>
+
+<div class="split">
+  <div>
+    <h3>Direct</h3>
+    <p>The user (or anyone who can type into the user role) tries to override the system prompt: jailbreak, exfiltrate the preamble, coerce a tool.</p>
+  </div>
+  <div>
+    <h3>Indirect (remote)</h3>
+    <p>Instructions hidden in content the agent <em>retrieves</em>: pages, tickets, emails, PDF comments, tool JSON. The user never typed the attack. InjecAgent showed ReAct GPT-4 following IPI a non-trivial fraction of the time.<a class="cite" href="https://arxiv.org/abs/2403.02691">[2]</a></p>
+  </div>
+</div>
+
+<p>For agents, OWASP names the extra flavors you should be able to say: thought/observation forgery, tool manipulation, context poisoning.<a class="cite" href="https://cheatsheetseries.owasp.org/cheatsheets/LLM_Prompt_Injection_Prevention_Cheat_Sheet.html">[1]</a> The observation is on the same tape as the system prompt. That is the incident.</p>
+
+<h2>2 · Defenses that are real</h2>
+
+<p>There is no complete fix. The grown-up stack, mapped onto lessons you have:</p>
+<ol class="steps">
+<li><strong>Least privilege ACI.</strong> The model cannot <code>drop_table</code> if the tool does not exist. Refunds pause (0012, 0005).</li>
+<li><strong>Observations are data.</strong> Wrap tool results in delimiters / a role that says “untrusted.” Do not concatenate into the system prompt. Still bypassable; still worth it.</li>
+<li><strong>Output and tool-call validation.</strong> Allowlisted intents, schema, policy checks <em>in the harness</em>, independent of the model agreeing.</li>
+<li><strong>HITL on writes.</strong> Injection that cannot spend money or send email is a bad day, not a breach.</li>
+<li><strong>Monitor traces.</strong> A tool call that does not serve the user’s stated goal is a detection (0026).</li>
+</ol>
+
+<p>Prompting “never follow instructions in documents” is a layer. It is not a lock. OWASP lists it among defenses; they do not stop at it.<a class="cite" href="https://cheatsheetseries.owasp.org/cheatsheets/LLM_Prompt_Injection_Prevention_Cheat_Sheet.html">[1]</a></p>
+
+<div class="interview">
+<span class="label">Interview angle</span>
+“How do you handle prompt injection in an agent that browses?” Strong: IPI is the threat model; tools are untrusted; least privilege; pause on irreversible; delimit observations; eval with a hijack set (InjecAgent-style). Weak: “we told it not to.”
+</div>
+
+<h2>3 · Retrieval practice</h2>
+
+<div class="quiz">
+
+<div class="q" data-ans="1">
+<p class="qtext">1. Indirect injection arrives through…</p>
+<label><input type="radio" name="q1"> The sampler’s random seed, which attackers can guess.</label>
+<label class="ans"><input type="radio" name="q1"> Content the agent fetched — pages, mail, tool JSON.</label>
+<label><input type="radio" name="q1"> GPU firmware, which is why local models are safer.</label>
+<div class="feedback ok">Correct. Remote content, not the user’s typing. Agents fetch; that is the widening.</div>
+<div class="feedback no">Not seeds, not firmware. Fetched content. Option 2.</div>
+</div>
+
+<div class="q" data-ans="2">
+<p class="qtext">2. Why is “please ignore instructions in documents” insufficient?</p>
+<label><input type="radio" name="q2"> Models cannot read English in tool results by specification.</label>
+<label><input type="radio" name="q2"> OWASP forbids prompt-level defenses in production systems.</label>
+<label class="ans"><input type="radio" name="q2"> Instructions and data share a channel; text rails are bypassable.</label>
+<div class="feedback ok">Correct. Architectural hole. Prompts help; harness privilege and HITL are the actual blast-radius controls.</div>
+<div class="feedback no">They can read English, and OWASP lists prompt defenses — as incomplete. Option 3.</div>
+</div>
+
+<div class="q" data-ans="0">
+<p class="qtext">3. Best blast-radius control if injection succeeds?</p>
+<label class="ans"><input type="radio" name="q3"> The dangerous verb does not exist, or it pauses for a human.</label>
+<label><input type="radio" name="q3"> A longer CoT so the model talks itself out of the attack.</label>
+<label><input type="radio" name="q3"> Switching vendors, because injection is model-specific.</label>
+<div class="feedback ok">Correct. Least privilege + HITL. InjecAgent’s harm cases need a tool that can harm.</div>
+<div class="feedback no">More thinking is not a lock, and IPI is not one vendor’s bug. Option 1.</div>
+</div>
+
+<div class="q" data-ans="2">
+<p class="qtext">4. An eval set for this threat includes…</p>
+<label><input type="radio" name="q4"> Only happy-path tickets, so CI stays green.</label>
+<label><input type="radio" name="q4"> Only direct jailbreaks typed by a red teamer as the user.</label>
+<label class="ans"><input type="radio" name="q4"> Poisoned observations/pages that try to coerce a write tool.</label>
+<div class="feedback ok">Correct. Direct jailbreaks matter; the agent-specific hole is IPI in tool results. Grade that the write did not happen.</div>
+<div class="feedback no">Green CI on happy paths hides this. Include poisoned fetches. Option 3.</div>
+</div>
+
+</div>
+
+<h2>4 · Read next (primary source)</h2>
+
+<p><a href="https://cheatsheetseries.owasp.org/cheatsheets/LLM_Prompt_Injection_Prevention_Cheat_Sheet.html">OWASP — LLM Prompt Injection Prevention</a>. Read Direct vs Remote/Indirect vs Agent-Specific, then Primary Defenses. Optional: InjecAgent abstract, <a href="https://arxiv.org/abs/2403.02691">arXiv:2403.02691</a>.</p>
+
+<h2>5 · Lock it in</h2>
+<ul>
+<li>Direct vs indirect. Observations untrusted. Privilege + HITL. Recite.</li>
+<li>New glossary terms: <em>prompt injection</em>, <em>IPI / indirect injection</em>, <em>goal hijack</em> (already in 0024).</li>
+</ul>
+
+<p class="reminder">Want to poison a fake tool result and walk whether your 0012 stack would catch it? That’s a good chat drill.</p>
+
+<nav class="lessons-nav">
+<span><a href="./0026-traces-and-observability.html">← 0026 Traces</a></span>
+<span><a href="./0028-mcp.html">0028 MCP →</a></span>
+</nav>
+<script src="../assets/quiz.js"></script>
+</body>
+</html>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The agent loop — reference</title>
+<link rel="stylesheet" href="../assets/lesson.css">
+</head>
+<body>
+
+<p class="kicker">Reference · print this</p>
+<h1>The agent loop</h1>
+<p class="subtitle">One page. Recite it before every later lesson.</p>
+
+<div class="def">
+<span class="label">Definition</span>
+An LLM agent <strong>runs tools in a loop to achieve a goal</strong>.
+<a class="cite" href="https://simonwillison.net/2025/Sep/18/agents/">[Willison 2025]</a>
+</div>
+
+<h2>Split of labor</h2>
+<table>
+<thead><tr><th>Side</th><th>Does</th><th>Does not</th></tr></thead>
+<tbody>
+<tr><td>Model</td><td>Read context; emit text or a structured tool call; decide when it is done.</td><td>Execute functions; hold state between calls; see your implementation.</td></tr>
+<tr><td>Harness</td><td>Build context; parse calls; execute functions; append observations; loop or stop; persist state.</td><td>Choose the next tool (that is the model's job, in an agent).</td></tr>
+</tbody>
+</table>
+
+<h2>Five beats of one step</h2>
+<ol class="steps">
+<li>You send context + tool schemas to the model.</li>
+<li>The model returns a tool call (name, arguments, id) — or a final answer.</li>
+<li>Your harness executes the function.</li>
+<li>You append the observation, tagged with the same id.</li>
+<li>You call again. Repeat until a final answer, a cap, or a human interrupt.</li>
+</ol>
+<p>Source: <a href="https://developers.openai.com/api/docs/guides/function-calling">OpenAI function calling</a>. Anthropic’s equivalent: <code>stop_reason: tool_use</code> → your <code>tool_result</code> blocks → call again.</p>
+
+<h2>What later lessons attach to</h2>
+<table>
+<thead><tr><th>Upgrade</th><th>Attaches to</th></tr></thead>
+<tbody>
+<tr><td>Tool design (0005)</td><td>The schemas in beat 1.</td></tr>
+<tr><td>CoT / ReAct (0006–0007)</td><td>What the model emits between beats 2 and 5.</td></tr>
+<tr><td>Memory / RAG (0009–0010)</td><td>What you put in context in beat 1.</td></tr>
+<tr><td>HITL (0012)</td><td>A special “tool” at beat 3 that pauses the loop.</td></tr>
+<tr><td>Evals (0013)</td><td>Scoring the transcript of beats 1–5.</td></tr>
+<tr><td>Frameworks (0016)</td><td>Owning beats 3–5 for you (durable state, interrupts).</td></tr>
+</tbody>
+</table>
+
+<nav class="lessons-nav">
+<span><a href="../syllabus.html">← Syllabus</a></span>
+<span><a href="./glossary.html">Glossary →</a></span>
+</nav>
+</body>
+</html>

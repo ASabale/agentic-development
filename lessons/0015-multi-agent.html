@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0015 — Multi-agent systems</title>
+<link rel="stylesheet" href="../assets/lesson.css">
+</head>
+<body>
+
+<p class="kicker">Lesson 0015 · Phase 4: Advanced · ~12 minutes</p>
+<h1>Multi-agent systems</h1>
+<p class="subtitle">Orchestrator–worker. A 90% win that is mostly extra tokens. Know when that is a bad deal.</p>
+
+<div class="win">
+<strong>Your one win today</strong>
+State Anthropic’s Research result honestly: multi-agent beat single-agent by 90.2% on their internal eval, token use explained ~80% of BrowseComp variance, and multi-agent costs ~15× a chat. Then say when <em>not</em> to pay.
+</div>
+
+<h2>1 · What they actually built</h2>
+
+<p>Anthropic, <em>How we built our multi-agent research system</em>. A multi-agent system, in their wording, is multiple agents — LLMs using tools in a loop — working together.<a class="cite" href="https://www.anthropic.com/engineering/multi-agent-research-system">[1]</a></p>
+
+<p>Research is an <span class="strong">orchestrator–worker</span> (lesson 0003) grown into true agents: a lead plans, then spawns parallel subagents. Each subagent has its own window, tools, and prompt, explores one direction, and compresses findings back. The lead synthesizes.</p>
+
+<div class="def">
+<span class="label">Why subagents help search</span>
+“The essence of search is compression.” Parallel workers buy you extra context capacity and reduce path dependence: one bad branch does not poison every other branch’s window.
+</div>
+
+<p>On their internal research eval, Opus 4 lead + Sonnet 4 subagents beat single-agent Opus 4 by <strong>90.2%</strong>. On BrowseComp, three factors explained 95% of performance variance; <strong>token usage alone explained 80%</strong>, then tool-call count, then model choice.<a class="cite" href="https://www.anthropic.com/engineering/multi-agent-research-system">[1]</a> Read that twice. “Collaboration” is mostly “we spent more tokens, in parallel, in isolated windows.”</p>
+
+<p>Cost they published: agents ≈ 4× chat tokens; multi-agent ≈ 15× chat. The latest, more efficient models multiply whatever budget you already spend — upgrading the model beat doubling the budget on an older one, in their telling.</p>
+
+<h2>2 · When this is a bad deal</h2>
+
+<ul>
+<li><strong>Shared, mutating state.</strong> Coding edits that collide. A ledger. Anything where two workers can stomp each other. Anthropic flags tight sequential dependencies as a poor fit.</li>
+<li><strong>Narrow, enumerable tasks.</strong> If a workflow in lesson 0003 covers it, parallel agents are a raise you did not need to give.</li>
+<li><strong>You cannot afford 15×.</strong> Breadth-first research is the sweet spot they name. Depth-first, single-path jobs want one good agent (or a chain).</li>
+<li><strong>You have not eval’d the single-agent baseline.</strong> 90.2% is versus a baseline they measured. “Let’s add agents” without that number is theater.</li>
+</ul>
+
+<p>Willison’s subagent notes, from the coding-agent side, rhyme: isolate a job (Explore), run specialists in parallel when the branches do not share writes, keep the parent as the compressor.<a class="cite" href="https://simonwillison.net/guides/agentic-engineering-patterns/">[2]</a></p>
+
+<div class="interview">
+<span class="label">Interview angle</span>
+“Should we go multi-agent?” Strong: only for breadth-first work that benefits from isolated windows; cite 90.2% and the 80% token story so you don’t mystify it; cite 15× cost; refuse it for colliding writes; demand a single-agent eval first. Weak: “multi-agent is more intelligent.”
+</div>
+
+<h2>3 · Retrieval practice</h2>
+
+<div class="quiz">
+
+<div class="q" data-ans="2">
+<p class="qtext">1. Anthropic’s 90.2% gain is best explained as…</p>
+<label><input type="radio" name="q1"> Emergent social intelligence among the subagents.</label>
+<label><input type="radio" name="q1"> A smaller model beating a larger one via democracy.</label>
+<label class="ans"><input type="radio" name="q1"> Parallel isolated windows that spend more useful tokens.</label>
+<div class="feedback ok">Correct. Token usage explained 80% of BrowseComp variance. Compression across extra windows is the mechanism.</div>
+<div class="feedback no">Not democracy, not social IQ. Extra tokens in isolated contexts. Option 3.</div>
+</div>
+
+<div class="q" data-ans="0">
+<p class="qtext">2. Multi-agent is a poor fit when…</p>
+<label class="ans"><input type="radio" name="q2"> Workers would mutate the same state and collide.</label>
+<label><input type="radio" name="q2"> The query is breadth-first across independent sources.</label>
+<label><input type="radio" name="q2"> You already measured a weak single-agent baseline.</label>
+<div class="feedback ok">Correct. Shared writes and tight sequences are the documented anti-fit. Breadth-first is the fit; a weak baseline is a reason to try, not to refuse.</div>
+<div class="feedback no">Breadth-first is the sweet spot, and a measured weak baseline is why you'd consider it. Colliding state is the no. Option 1.</div>
+</div>
+
+<div class="q" data-ans="1">
+<p class="qtext">3. Relative token cost they published?</p>
+<label><input type="radio" name="q3"> Multi-agent is cheaper than chat because workers share KV cache.</label>
+<label class="ans"><input type="radio" name="q3"> Agents ~4× chat; multi-agent ~15× chat.</label>
+<label><input type="radio" name="q3"> Multi-agent is a flat 90.2× the single-agent bill.</label>
+<div class="feedback ok">Correct. 4× and 15×. The 90.2% is a quality delta on one eval, not a price multiplier.</div>
+<div class="feedback no">Do not invent a cache discount, and do not turn 90.2% into a bill. Option 2.</div>
+</div>
+
+<div class="q" data-ans="2">
+<p class="qtext">4. Orchestrator–workers (workflow) vs this Research system?</p>
+<label><input type="radio" name="q4"> They are identical; Anthropic reused the notebook as-is.</label>
+<label><input type="radio" name="q4"> Research is prompt chaining with no delegation at all.</label>
+<label class="ans"><input type="radio" name="q4"> Research workers are themselves agents, with their own loops.</label>
+<div class="feedback ok">Correct. Same topology, deeper nodes: each worker is tools-in-a-loop, not a single LLM call. That is why the bill jumps.</div>
+<div class="feedback no">Not identical to the simple workflow, and not a chain. Workers are agents. Option 3.</div>
+</div>
+
+</div>
+
+<h2>4 · Read next (primary source)</h2>
+
+<p><a href="https://www.anthropic.com/engineering/multi-agent-research-system">Anthropic — How we built our multi-agent research system</a>. Read the architecture and the token-economics paragraphs. Ignore the product screenshots on a first pass.</p>
+
+<h2>5 · Lock it in</h2>
+<ul>
+<li>90.2%, 80% tokens, 15× cost, poor fit = colliding writes. Recite.</li>
+<li>New glossary terms: <em>subagent</em>, <em>orchestrator–worker (multi-agent)</em>, <em>context isolation</em>.</li>
+</ul>
+
+<p class="reminder">If a slide says “multi-agent = smarter,” we can rewrite the slide in chat until it mentions tokens.</p>
+
+<nav class="lessons-nav">
+<span><a href="./0014-twelve-factor-agents.html">← 0014 Twelve-factor</a></span>
+<span><a href="./0016-when-frameworks-pay.html">0016 When frameworks pay →</a></span>
+</nav>
+<script src="../assets/quiz.js"></script>
+</body>
+</html>
