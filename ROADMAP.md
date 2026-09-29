@@ -23,8 +23,8 @@ when *not* to build an agent.
 
 | # | Lesson | Status |
 |---|--------|--------|
-| 0001 | [What is an agent?](./lessons/0001-what-is-an-agent.html) The augmented LLM and the loop. | done |
-| 0002 | [Tools in a loop](./lessons/0002-tools-in-a-loop.html) Anatomy of one step: call → execute → observe. | **Current** |
+| 0001 | [What is an agent?](./lessons/0001-what-is-an-agent.html) The augmented LLM and the loop. | |
+| 0002 | [Tools in a loop](./lessons/0002-tools-in-a-loop.html) Anatomy of one step: call → execute → observe. | |
 | 0003 | [Workflows vs agents](./lessons/0003-workflows-vs-agents.html) Five production patterns. Who picks the next step? | queued |
 | 0004 | [Context as working memory](./lessons/0004-context-as-working-memory.html) Tokens, statelessness, context engineering. | queued |
 
