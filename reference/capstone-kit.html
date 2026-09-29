@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Capstone kit — reference</title>
+<link rel="stylesheet" href="../assets/lesson.css">
+</head>
+<body>
+
+<p class="kicker">Reference · build this</p>
+<h1>Capstone kit</h1>
+<p class="subtitle">The files, shapes, and order for the portfolio agent in <a href="../lessons/0020-capstone-brief.html">lesson 0020</a>. Copy the shapes. Write the code yourself. One job, one harness, no framework.</p>
+
+<h2>1 · Done means this</h2>
+<ul>
+<li>A loop you wrote: send context, model emits a tool call, your code runs it, you append the observation by id, stop on a final answer or a step cap.</li>
+<li>Three to seven tools. Schemas are real. Errors are short strings the model can read.</li>
+<li>One irreversible tool that pauses for a human <em>before</em> it runs. A yes/no on stdin counts.</li>
+<li>Memory outside the window: a notes file or sqlite. The model reads and writes it with tools.</li>
+<li>At least ten eval tasks. A grader checks world-state or a citation, not “the prose looked fine.”</li>
+<li>Every run writes a trace you can open.</li>
+<li>A README that states the job, the token cost of one passing task, one failure you traced, and when you would add a framework.</li>
+</ul>
+
+<h2>2 · Layout</h2>
+<pre>capstone/
+  README.md
+  evals/tasks.jsonl
+  evals/grade.py
+  tools.py          # schemas + handlers
+  loop.py           # the five beats
+  traces/           # one jsonl per run
+  memory/notes.md</pre>
+<p>Put this in its own directory. Do not bury it inside the lesson HTML.</p>
+
+<h2>3 · Eval row (write these first)</h2>
+<p>One JSON object per line. Ten lines before you call a model.</p>
+<pre>{"id": "q1",
+ "input": "Which file defines the agent loop beats?",
+ "expect": {"cites": ["lessons/0002-tools-in-a-loop.html"],
+            "must_not_call": ["delete_file"]}}</pre>
+<p>The grader reads the trace. Pass if every path in <code>cites</code> appears in a tool result the model actually received, and no forbidden tool ran. For the ticket job, <code>expect</code> is <code>{"label": "billing", "escalated": false}</code> and the grader checks the database, not the sentence.</p>
+
+<h2>4 · One tool</h2>
+<pre>{"name": "read_file",
+ "description": "Return the text of a file under the workspace. Path is relative. Refuses paths outside the root.",
+ "parameters": {"type": "object",
+   "properties": {"path": {"type": "string"}},
+   "required": ["path"],
+   "additionalProperties": false}}</pre>
+<p>The handler returns either the text or one line: <code>error: path escapes root</code>. Do not return a stack trace.</p>
+
+<h2>5 · The loop, in the order the course uses</h2>
+<ol class="steps">
+<li>Load the system prompt and the user task. Append nothing else yet.</li>
+<li>Call the model with the tool list. If the message has no tool call, that is the final answer. Stop.</li>
+<li>If the tool is on the irreversible list, print the arguments and wait for <code>y</code>. <code>n</code> appends <code>error: human rejected</code> and continues. Do not run the handler first.</li>
+<li>Else run the handler. Append the observation with the tool-call id.</li>
+<li>If steps exceed 8, stop and record <code>capped</code>. Factor 10: a bigger cap is a different product.</li>
+</ol>
+<p>Parallel calls and <code>tool_choice</code> can wait. A correct serial loop is the portfolio.</p>
+
+<h2>6 · Trace line</h2>
+<pre>{"step": 2, "kind": "tool", "name": "read_file",
+ "args": {"path": "lessons/0002-tools-in-a-loop.html"},
+ "ok": true, "chars": 4200}</pre>
+<p>Also record <code>kind: "model"</code> with input and output token counts when the API returns them. The README number is the sum for one task, not a guess.</p>
+
+<h2>7 · README headings</h2>
+<ol class="steps">
+<li>Job in one sentence, and why it is an agent rather than a workflow.</li>
+<li>Tools, and which one pauses.</li>
+<li>Eval: how many tasks, what the grader checks, last pass count.</li>
+<li>Cost: tokens (and, if you have it, dollars) for one passing task and one failure.</li>
+<li>One traced failure: what the model did, what you changed.</li>
+<li>Framework: the concrete feature you do not have yet (durable pause across processes is the usual honest answer). Do not add it to pass the README.</li>
+</ol>
+
+<h2>8 · Pick one job</h2>
+<table>
+<thead><tr><th>Job</th><th>Tools</th><th>Grader looks at</th></tr></thead>
+<tbody>
+<tr><td>Repo question-answerer</td><td>list_dir, read_file, grep, ask_human</td><td>cited paths that were actually read</td></tr>
+<tr><td>Ticket triage</td><td>search_tickets, get_ticket, search_policy, draft_reply, escalate</td><td>label, and whether escalate paused</td></tr>
+<tr><td>Research clerk</td><td>search, fetch, take_notes, finish</td><td>must-cite ids; step count ≤ 8</td></tr>
+</tbody>
+</table>
+<p>A fourth job is fine if it still fits section 1. Twenty tools, a fine-tune, or a swarm of agents does not.</p>
+
+<p>Lessons to reopen while you build: <a href="../lessons/0002-tools-in-a-loop.html">0002</a> loop, <a href="../lessons/0005-tool-design.html">0005</a> tools, <a href="../lessons/0011-structured-outputs.html">0011</a> schemas, <a href="../lessons/0012-guardrails-and-hitl.html">0012</a> pause, <a href="../lessons/0013-evaluating-agents.html">0013</a> graders, <a href="../lessons/0026-traces-and-observability.html">0026</a> traces.</p>
+
+<nav class="lessons-nav">
+<span><a href="../lessons/0020-capstone-brief.html">← 0020 Capstone brief</a></span>
+<span><a href="../syllabus.html">Syllabus →</a></span>
+</nav>
+</body>
+</html>

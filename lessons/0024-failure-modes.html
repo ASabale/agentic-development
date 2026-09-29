@@ -44,6 +44,8 @@ List six failure modes from memory, and for each name whether the fix is context
 
 <p>ReAct’s own analysis of success and failure (the paper’s appendix) is worth knowing exists: search-fail vs reasoning-fail vs hallucination on HotpotQA. The move is to <em>name which</em>, not to say “we’ll add more agents.”<a class="cite" href="https://arxiv.org/abs/2210.03629">[2]</a></p>
 
+<p>OWASP’s December 2025 agentic top 10 is the named list beyond this table: tool misuse, memory poisoning, and the rest, with prompt injection as one row.<a class="cite" href="https://genai.owasp.org/2025/12/09/owasp-top-10-for-agentic-applications-the-benchmark-for-agentic-security-in-the-age-of-autonomous-ai/">[3]</a> Lesson 0027 owns the injection row. Use the top 10 so you do not stop at hallucination.</p>
+
 <div class="interview">
 <span class="label">Interview angle</span>
 After you draw the architecture they will ask “how does this fail?” Answer in this catalog, one sentence each, with a lever. If you only list hallucination you sound like 2023. If you include spin, early victory, injection, and grader bugs you sound like you’ve read a postmortem.

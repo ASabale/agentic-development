@@ -48,7 +48,7 @@ Computer use is an ACI: a way to ground actions in a GUI when no API exists. You
 <li>You need a real sandbox (browser profile, VM). This is where “the API does not execute” is life-or-death.</li>
 </ul>
 
-<p>Prefer an API tool if one exists. Computer use is the residue — the vendor with no API, the one flow you must click. Cap steps. Watch traces as video-of-spans, not as hope.</p>
+<p>Prefer an API tool if one exists. When the job is “click the running app,” a browser tool is a normal harness piece — Anthropic’s 2026 evaluator drives the UI through Playwright MCP rather than asking the builder if the page looks done.<a class="cite" href="https://www.anthropic.com/engineering/harness-design-long-running-apps">[2]</a> It is still the expensive tool: screenshots and a model call per click. Cap steps. Sandbox the browser. Do not point it at an admin UI that an API already covers.</p>
 
 <div class="interview">
 <span class="label">Interview angle</span>

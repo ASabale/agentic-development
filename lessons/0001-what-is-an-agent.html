@@ -11,7 +11,10 @@
 <h1>What is an agent?</h1>
 <p class="subtitle">Lesson 0001 · Phase 1: Foundations · ~10 minutes</p>
 
-<p><strong>Your one win today:</strong> by the end of this page you can state the field's consensus definition of an agent from memory, and classify any system as <em>agent</em> or <em>workflow</em> — the single most common opening question in agentic-systems interviews.</p>
+<div class="win">
+<strong>Your one win today</strong>
+State the consensus definition from memory, name the <em>augmented LLM</em> as the block an agent is built from, and classify any system as agent or workflow.
+</div>
 
 <h2>1 · The one-sentence definition</h2>
 
@@ -64,11 +67,22 @@ The LLM <strong>dynamically directs its own process</strong> and tool usage — 
 "How would you decide whether a use case needs an agent?" The strong answer: <em>default to a workflow; reach for an agent only when the task's steps can't be enumerated in advance — when the path depends on what you discover along the way.</em> Name the cost: agents burn tokens, latency, and reliability for that flexibility.<a class="cite" href="https://github.com/humanlayer/12-factor-agents">[4]</a>
 </div>
 
-<h2>3 · Why start here</h2>
+<h2>3 · The augmented LLM</h2>
+
+<p>Anthropic’s building block, one step below the loop, is the <span class="strong">augmented LLM</span>: the same model call, with retrieval, tools, and memory attached.<a class="cite" href="https://www.anthropic.com/engineering/building-effective-agents">[3]</a> A single augmented call is not yet an agent. Your code still decides that this call happens, then that one. The agent is what you get when you put that block in a loop and let the model pick the next tool.</p>
+
+<div class="def">
+<span class="label">Augmented LLM</span>
+One model call plus the extras it can use on that call: tools, retrieved text, memory. The <em>loop</em> — who chooses the next call — is a separate decision, taught in lesson 0002.
+</div>
+
+<p>Interviews that open on “draw an agent” want this picture first: model in the middle, tools and retrieval around it, then an arrow back into the model labeled “observation.” If you only say “it uses tools,” you have skipped the block the 2024 post is organized around.</p>
+
+<h2>4 · Why start here</h2>
 
 <p>This definition is the trunk of the whole course: tool design (Phase 2) is about engineering the hands; reasoning and the loop (Phase 2) refine the habit; guardrails and human-in-the-loop (Phase 3) constrain the job description; multi-agent systems (Phase 4) just connect several brains. Check the <a href="../ROADMAP.md">roadmap</a> to see where we're headed.</p>
 
-<h2>4 · Retrieval practice</h2>
+<h2>5 · Retrieval practice</h2>
 
 <p>Close this page's top two sections mentally, then answer without scrolling up. Four questions; you get instant feedback. Getting these from memory — not re-reading — is what makes it stick.</p>
 
@@ -112,11 +126,11 @@ The LLM <strong>dynamically directs its own process</strong> and tool usage — 
 
 </div>
 
-<h2>5 · Read next (primary source)</h2>
+<h2>6 · Read next (primary source)</h2>
 
 <p><a href="https://www.anthropic.com/engineering/building-effective-agents">Anthropic — <em>Building effective agents</em></a> (Dec 2024). Read the sections "What are agents?" and "When to use agents". ~15 minutes; it is the source this lesson compresses. Optional companion: <a href="https://simonwillison.net/2025/Sep/18/agents/">Simon Willison on how the definition converged</a> (5 min).</p>
 
-<h2>6 · Lock it in</h2>
+<h2>7 · Lock it in</h2>
 
 <ul>
 <li>Say the definition out loud, unprompted: <em>an LLM agent is ___ ___ ___ ___.</em></li>

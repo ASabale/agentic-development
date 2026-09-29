@@ -17,3 +17,10 @@
 ## Session 3 (2026-09-25)
 - User said “continue.” Added Phase 6 depth (0021–0030), failure-modes reference, loop simulator on 0002, glossary/resources updates.
 - Still do not binge. Current remains 0002. Depth lessons are for after 0004 is grilled.
+
+## Session 4 (2026-09-29)
+- Public-course pass. Research note: `research/2026-09-29-lesson-field-brief.md`.
+- Filled promise gaps: 0001 augmented LLM, 0006 test-time compute after Wei, 0017 2026 harness (anxiety, reset, separate evaluator), 0027 agentic top 10 pointer, 0028 MCP spec 2026-07-28 stateless.
+- Roadmap 0002 line now says five beats, matching the page. Did not rewrite lessons that already matched their source.
+- Capstone kit: `reference/capstone-kit.html`, linked from 0020 and the syllabus. Shapes only; the learner writes the loop.
+- Second pass from the same brief: 0004 session log vs window, 0005 eval the tools, 0008 planner only on long horizon, 0014 appendix 13, 0015 don’t mix fan-out with planner/evaluator, 0023 reasoning tokens and the $9/$200 harness comparison, 0024 agentic top 10 pointer, 0025 stable tool order, 0030 browser as an evaluator tool.

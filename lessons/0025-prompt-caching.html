@@ -40,6 +40,8 @@ Put static content first (system, tool schemas, long instructions). Append new t
 
 <p>Measure <code>cached_tokens</code> / cache-read hits. If your agent is 4× chat (0023) and your hit rate is 0%, you are burning the triangular prefix at full price.</p>
 
+<p>Tool order is part of the prefix. The MCP spec revision of 2026-07-28 tells servers to return <code>tools/list</code> in a stable order so clients can keep that prefix warm.<a class="cite" href="https://modelcontextprotocol.io/specification/2026-07-28/changelog">[2]</a> Shuffling the tool list between calls is a cache miss you caused.</p>
+
 <div class="interview">
 <span class="label">Interview angle</span>
 “How do you keep agent cost down?” After the envelope: append-only for cache; don’t shuffle tools; don’t put the user id at the start of the system prompt if it varies per customer (that turns the whole prefix cold). Compaction is a cost/quality trade, not free.</div>

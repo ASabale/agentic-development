@@ -49,9 +49,11 @@ The contract between a non-deterministic model and deterministic code. The model
 <li>Do not expose a raw SQL tool to a customer-facing agent. Expose <code>lookup_order(id)</code>. The ACI is also a security boundary — <a href="./0012-guardrails-and-hitl.html">lesson 0012</a>.</li>
 </ul>
 
+<p>Anthropic’s later tool post adds the loop you use to get those descriptions right: build and grade the tools with an agent, on real tasks, and read the failures.<a class="cite" href="https://www.anthropic.com/engineering/writing-tools-for-agents">[3]</a> A schema that looks precise in a doc and still gets the wrong argument is a tool bug. Fix the description or the shape. Do not add a seventh overlapping tool.</p>
+
 <div class="interview">
 <span class="label">Interview angle</span>
-“How would you design tools for a support agent?” Talk ACI, not frameworks. Name, description, schema; poka-yoke ids; compact errors; few tools; observations as the only channel. Mention that tool descriptions are in the prompt, so they compete with everything else for attention.
+“How would you design tools for a support agent?” Talk ACI, not frameworks. Name, description, schema; poka-yoke ids; compact errors; few tools; observations as the only channel. Mention that tool descriptions are in the prompt, so they compete with everything else for attention. Say you would eval the tools, not only the agent.
 </div>
 
 <h2>4 · Retrieval practice</h2>

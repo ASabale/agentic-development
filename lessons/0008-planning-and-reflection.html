@@ -63,9 +63,11 @@ After a trial, convert the feedback signal (pass/fail, a unit test, a score) int
 </tbody>
 </table>
 
+<p>Native planning is enough when the job fits one session. On multi-hour work, Anthropic’s 2026 harness keeps a separate planner that writes the spec, and a separate evaluator that does not grade its own output.<a class="cite" href="https://www.anthropic.com/engineering/harness-design-long-running-apps">[3]</a> That is not “more CoT.” It is another context, paid for because the builder’s plan drifts. Lesson 0017 is the full split. Use it when the horizon is the problem, not as a default on a ten-step ticket.</p>
+
 <div class="interview">
 <span class="label">Interview angle</span>
-“How would your agent get better over retries?” Weak: “I’d finetune.” Strong: if you have a checkable signal (tests, a grader), write a short verbal critique into memory and retry — Reflexion. If you do not have a signal, do not trust the model to mark its own homework. And cap retries (Factor 9).
+“How would your agent get better over retries?” Weak: “I’d finetune.” Strong: if you have a checkable signal (tests, a grader), write a short verbal critique into memory and retry — Reflexion. If you do not have a signal, do not trust the model to mark its own homework. And cap retries (Factor 9). On a multi-hour job, say the planner is a different agent, not a longer prompt.
 </div>
 
 <h2>4 · Retrieval practice</h2>

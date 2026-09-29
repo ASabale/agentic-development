@@ -43,6 +43,8 @@ State Anthropic’s Research result honestly: multi-agent beat single-agent by 9
 
 <p>Willison’s subagent notes, from the coding-agent side, rhyme: isolate a job (Explore), run specialists in parallel when the branches do not share writes, keep the parent as the compressor.<a class="cite" href="https://simonwillison.net/guides/agentic-engineering-patterns/">[2]</a></p>
 
+<p>A planner plus a generator plus an evaluator (0017) is a different split. Those roles run in sequence so the grader does not share the builder’s context. They are not the 15× fan-out in this lesson. Do not cite the research-system number for that harness, or the other way around.</p>
+
 <div class="interview">
 <span class="label">Interview angle</span>
 “Should we go multi-agent?” Strong: only for breadth-first work that benefits from isolated windows; cite 90.2% and the 80% token story so you don’t mystify it; cite 15× cost; refuse it for colliding writes; demand a single-agent eval first. Weak: “multi-agent is more intelligent.”

@@ -54,7 +54,18 @@ A series of intermediate natural-language reasoning steps that lead to a final a
 “Why have the model think out loud?” Strong: CoT allocates test-time compute to intermediate steps; it is also the only human-readable trace of a decision. Weak: “it makes the model smarter.” Name Wei et al., name the scale caveat, name the grounding limit that ReAct fixes.
 </div>
 
-<h2>4 · Retrieval practice</h2>
+<h2>4 · Test-time compute, after the paper</h2>
+
+<p>Wei et al. spent extra tokens by pasting worked examples. Since 2025 the same idea is often a <span class="strong">thinking budget</span>: the model is trained to emit a long internal trace before the answer, and the product meters that trace as test-time compute.<a class="cite" href="https://lilianweng.github.io/posts/2025-05-01-thinking/">[3]</a> Three distinctions interviewers now check:</p>
+<ul>
+<li><strong>Few-shot CoT</strong> (this paper) is exemplars in the prompt. You can read every step. No extra training.</li>
+<li><strong>A reasoning model’s trace</strong> may be hidden, summarized, or billed separately. It is still tokens sampled before the answer. It is not a few-shot exemplar you wrote.</li>
+<li><strong>Neither is grounded.</strong> A longer trace does not fetch a missing fact. That limit is unchanged, and it is why lesson 0007 exists.</li>
+</ul>
+
+<p>Say the cost out loud: you are buying accuracy on hard items by paying latency and tokens on every item that thinks. Do not turn a thinking budget on for a lookup the tool should have done.</p>
+
+<h2>5 · Retrieval practice</h2>
 
 <div class="quiz">
 
@@ -86,21 +97,21 @@ A series of intermediate natural-language reasoning steps that lead to a final a
 </div>
 
 <div class="q" data-ans="2">
-<p class="qtext">4. CoT helps agents because it…</p>
-<label><input type="radio" name="q4"> Replaces tools; a long enough chain is a database lookup.</label>
-<label><input type="radio" name="q4"> Shrinks the context window by compressing prior turns.</label>
-<label class="ans"><input type="radio" name="q4"> Spends extra tokens to decompose the next decision.</label>
-<div class="feedback ok">Correct. Test-time compute. Tools still do the world's work. Compaction is a different lesson.</div>
-<div class="feedback no">CoT is not retrieval and not compaction. It is extra reasoning tokens before an answer or a tool call. Option 3.</div>
+<p class="qtext">4. A 2025 “reasoning model” thinking trace differs from Wei et al. how?</p>
+<label><input type="radio" name="q4"> It is a database lookup, so the chain is grounded by definition.</label>
+<label><input type="radio" name="q4"> It is the same object: eight handwritten GSM8K exemplars in the prompt.</label>
+<label class="ans"><input type="radio" name="q4"> It is extra sampled tokens before the answer, often trained and sometimes hidden — not exemplars you pasted.</label>
+<div class="feedback ok">Correct. Same family (test-time compute), different mechanism. Still ungrounded. Tools remain lesson 0007.</div>
+<div class="feedback no">Not retrieval, and not Wei’s few-shot paste. A trained or metered trace. Option 3.</div>
 </div>
 
 </div>
 
-<h2>5 · Read next (primary source)</h2>
+<h2>6 · Read next (primary source)</h2>
 
-<p><a href="https://arxiv.org/pdf/2201.11903">Wei et al. — CoT paper, PDF</a>. Read the abstract, §1, and §2 (about 12 minutes). Skip the tables on a first pass; you need the claim, not GSM8K decimals.</p>
+<p><a href="https://arxiv.org/pdf/2201.11903">Wei et al. — CoT paper, PDF</a>. Read the abstract, §1, and §2 (about 12 minutes). Skip the tables on a first pass; you need the claim, not GSM8K decimals. Then <a href="https://lilianweng.github.io/posts/2025-05-01-thinking/">Weng — Why We Think</a> (1 May 2025) for what “thinking” became after the paper.</p>
 
-<h2>6 · Lock it in</h2>
+<h2>7 · Lock it in</h2>
 <ul>
 <li>Write, from memory: “CoT = few-shot intermediate steps; helps large models; ungrounded.”</li>
 <li>New glossary terms: <em>chain of thought</em>, <em>test-time compute</em>, <em>exemplar</em>.</li>

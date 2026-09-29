@@ -24,7 +24,7 @@ when *not* to build an agent.
 | # | Lesson | Status |
 |---|--------|--------|
 | 0001 | [What is an agent?](./lessons/0001-what-is-an-agent.html) The augmented LLM and the loop. | |
-| 0002 | [Tools in a loop](./lessons/0002-tools-in-a-loop.html) Anatomy of one step: call → execute → observe. | |
+| 0002 | [Tools in a loop](./lessons/0002-tools-in-a-loop.html) Five beats of one step: who emits the call, who runs it. | |
 | 0003 | [Workflows vs agents](./lessons/0003-workflows-vs-agents.html) Five production patterns. Who picks the next step? | queued |
 | 0004 | [Context as working memory](./lessons/0004-context-as-working-memory.html) Tokens, statelessness, context engineering. | queued |
 
@@ -104,4 +104,4 @@ The job of this phase: the substrate, the bill, named failures, buses.
 
 These lessons serve no `dev-*` pipeline skill — they are career learning.
 
-_Last updated: 2026-09-25 (session 3: depth lessons 0021–0030 + loop simulator)_
+_Last updated: 2026-09-29 (session 4: 0001, 0006, 0017, 0027, 0028 brought up to the sources; 0002 roadmap line aligned to five beats)_

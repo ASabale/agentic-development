@@ -35,6 +35,7 @@
 <p><span class="strong">Context engineering.</span> Curating the tokens in the window: prompts, tool schemas, retrieved docs, history, memory slices, output-shape instructions. Factor 3: “here’s what happened; what’s next?”</p>
 <p><span class="strong">Context isolation.</span> Giving a subagent its own window so one branch cannot poison another. The mechanism behind much of multi-agent’s gain.</p>
 <p><span class="strong">Context rot.</span> Recall quality degrades as the window fills, before the hard token cap.</p>
+<p><span class="strong">Context anxiety.</span> A model starts wrapping the task up early as the window fills. Distinct from rot. A context reset (new session plus artifacts) clears it; compaction may not. <a class="cite" href="https://www.anthropic.com/engineering/harness-design-long-running-apps">[Anthropic 2026]</a></p>
 <p><span class="strong">Context window.</span> The finite token sequence the model attends to in one call. If a fact is not in the window, the model does not know it. Working memory.</p>
 <p><span class="strong">Contextual retrieval.</span> Anthropic’s fix for chunking: prepend chunk-specific context before embedding and before BM25. Reported 49% fewer retrieval failures (67% with rerank). <a class="cite" href="https://www.anthropic.com/engineering/contextual-retrieval">[Anthropic]</a></p>
 
@@ -77,7 +78,7 @@
 <p><span class="strong">Long-term memory.</span> Anything that survives a new call — files, databases, tickets, git. Visible to the model only when a tool puts a slice in the window.</p>
 
 <h2>M</h2>
-<p><span class="strong">MCP (Model Context Protocol).</span> Open protocol for exposing tools, resources, and prompts to AI hosts. USB-C for context — not a runtime, not an agent. <a class="cite" href="https://modelcontextprotocol.io/introduction">[MCP]</a></p>
+<p><span class="strong">MCP (Model Context Protocol).</span> Open protocol for exposing tools, resources, and prompts to AI hosts. Not a runtime and not an agent. As of spec 2026-07-28 the protocol is stateless: no session id, no initialize handshake; cross-call state is a handle passed as a tool argument. <a class="cite" href="https://modelcontextprotocol.io/specification/2026-07-28/changelog">[MCP spec]</a></p>
 <p><span class="strong">MCP host / client / server.</span> Host = the AI app; client = one connection inside the host; server = the process that serves context (stdio or HTTP).</p>
 <p><span class="strong">Multimodal tokens.</span> Images (and other non-text) embedded in the same context window as text. How screenshots enter computer-use loops.</p>
 <p><span class="strong">Memory tool.</span> A tool (often filesystem-shaped) the agent uses to write and read persistent notes. The production implementation of long-term memory. <a class="cite" href="https://simonwillison.net/2025/Sep/18/agents/">[Willison 2025]</a></p>
@@ -114,7 +115,7 @@
 <p><span class="strong">Subagent.</span> An agent spawned by a lead, with its own window and tools, that returns a compressed result. Useful for breadth-first work; costly (~15× chat in Anthropic’s Research numbers).</p>
 
 <h2>T</h2>
-<p><span class="strong">Test-time compute.</span> Extra tokens spent at inference (CoT, longer “thinking”) to improve a single answer, as opposed to extra training.</p>
+<p><span class="strong">Test-time compute.</span> Extra tokens spent at inference (few-shot CoT, or a trained thinking trace) to improve a single answer, as opposed to extra training. A hidden reasoning trace is not the same object as Wei et al.’s pasted exemplars. <a class="cite" href="https://lilianweng.github.io/posts/2025-05-01-thinking/">[Weng 2025]</a></p>
 <p><span class="strong">Token.</span> The integer unit models consume and emit. Billing and window limits are in tokens, not words.</p>
 <p><span class="strong">Trace.</span> One tree of spans for a single agent job. Without it you cannot tell grader bugs from agent bugs.</p>
 <p><span class="strong">TTFT (time to first token).</span> Time spent processing the prefix before any output token. Grows with uncached input; caching is a TTFT feature.</p>

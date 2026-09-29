@@ -51,6 +51,8 @@ Recite the twelve factors as a production checklist, and compress them into thre
 <li><strong>Make the agent a stateless reducer.</strong> <code>next = reduce(events)</code>. State lives outside the process. This is Factor 12 “mostly for fun,” and also how you survive a restart.</li>
 </ol>
 
+<p>The repo’s appendix 13, pre-fetch, is an extra note: load what the next step will need before the model asks, when you already know. It does not replace the twelve. Interviewers still want 1–12.</p>
+
 <div class="def">
 <span class="label">Whiteboard compression</span>
 <strong>Own tokens. Own lifetime. Own failure.</strong> If a design violates one of those, it will hurt in production even if the demo was pretty.

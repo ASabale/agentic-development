@@ -52,7 +52,13 @@ Distinguish direct vs indirect injection, and treat every tool result as <em>unt
 “How do you handle prompt injection in an agent that browses?” Strong: IPI is the threat model; tools are untrusted; least privilege; pause on irreversible; delimit observations; eval with a hijack set (InjecAgent-style). Weak: “we told it not to.”
 </div>
 
-<h2>3 · Retrieval practice</h2>
+<h2>3 · Injection is not the whole agent threat list</h2>
+
+<p>This lesson’s job stays injection: direct versus indirect, and untrusted observations. In December 2025 OWASP published a separate <em>Top 10 for Agentic Applications</em>.<a class="cite" href="https://genai.owasp.org/2025/12/09/owasp-top-10-for-agentic-applications-the-benchmark-for-agentic-security-in-the-age-of-autonomous-ai/">[3]</a> Prompt injection is one entry on that list, not the list. The other entries cover things you already have lessons for — excessive agency, tool misuse, memory poisoning, rogue goals — under agent-specific names.</p>
+
+<p>Do not answer “how do you secure an agent?” with only the injection cheat sheet. Say: injection is the channel problem (this page); the blast radius is the tool ACL and the human gate (0012); the rest of the agentic top 10 is the map you check so you did not stop at one hole.</p>
+
+<h2>4 · Retrieval practice</h2>
 
 <div class="quiz">
 
@@ -94,11 +100,11 @@ Distinguish direct vs indirect injection, and treat every tool result as <em>unt
 
 </div>
 
-<h2>4 · Read next (primary source)</h2>
+<h2>5 · Read next (primary source)</h2>
 
-<p><a href="https://cheatsheetseries.owasp.org/cheatsheets/LLM_Prompt_Injection_Prevention_Cheat_Sheet.html">OWASP — LLM Prompt Injection Prevention</a>. Read Direct vs Remote/Indirect vs Agent-Specific, then Primary Defenses. Optional: InjecAgent abstract, <a href="https://arxiv.org/abs/2403.02691">arXiv:2403.02691</a>.</p>
+<p><a href="https://cheatsheetseries.owasp.org/cheatsheets/LLM_Prompt_Injection_Prevention_Cheat_Sheet.html">OWASP — LLM Prompt Injection Prevention</a>. Read Direct vs Remote/Indirect vs Agent-Specific, then Primary Defenses. Then skim the <a href="https://genai.owasp.org/2025/12/09/owasp-top-10-for-agentic-applications-the-benchmark-for-agentic-security-in-the-age-of-autonomous-ai/">OWASP Top 10 for Agentic Applications</a> (9 Dec 2025) so you know injection is one row. Optional: InjecAgent abstract, <a href="https://arxiv.org/abs/2403.02691">arXiv:2403.02691</a>.</p>
 
-<h2>5 · Lock it in</h2>
+<h2>6 · Lock it in</h2>
 <ul>
 <li>Direct vs indirect. Observations untrusted. Privilege + HITL. Recite.</li>
 <li>New glossary terms: <em>prompt injection</em>, <em>IPI / indirect injection</em>, <em>goal hijack</em> (already in 0024).</li>

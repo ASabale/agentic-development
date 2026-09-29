@@ -60,7 +60,18 @@ Explain why a bigger window does not make a week-long agent, and name Anthropic�
 “How would you run an agent overnight on a repo?” Weak: “1M context.” Strong: initializer + per-session worker; externalized feature list and git as memory; verify before and after; compaction only within a session; eval on ‘did the next session know what happened.’ Mention a fresh-context evaluator so the grader does not share the builder’s delusions.
 </div>
 
-<h2>3 · Retrieval practice</h2>
+<h2>3 · What the 2026 harnesses added</h2>
+
+<p>The initializer/worker split still stands. Anthropic’s follow-up, <em>Harness design for long-running application development</em>, names three failures that “1M context” does not fix.<a class="cite" href="https://www.anthropic.com/engineering/harness-design-long-running-apps">[2]</a></p>
+<ul>
+<li><strong>Context anxiety.</strong> Some models start wrapping up early as the window fills. That is not the same as context rot (recall getting worse). A bigger window can make the early-exit worse, not better.</li>
+<li><strong>Reset is not compaction.</strong> Compaction summarizes history so the <em>same</em> agent continues. A reset starts a fresh session; artifacts carry the state. Compaction can leave the anxiety in the shortened transcript. A reset clears it.</li>
+<li><strong>Self-evaluation is unreliable.</strong> The agent that just built the work praises it. Their counter is a separate evaluator that actually uses the app (they gave it a browser via Playwright MCP), not a second prompt to the builder saying “be honest.”</li>
+</ul>
+
+<p>The harness they ended on has three roles: a <span class="strong">planner</span> that turns a short prompt into a spec, a <span class="strong">generator</span> that implements one feature per sprint, and an <span class="strong">evaluator</span> that clicks through the running app. On one comparison the full harness cost more than twenty times a solo agent, and the output was obviously more complete. After a stronger model (they re-ran around Opus 4.6), some of that scaffolding could come off. Their conclusion is the one to keep: better models shrink a given harness, they do not make harness design go away. Weng’s July 2026 survey puts the same claim in one place: the harness is now a design surface of its own.<a class="cite" href="https://lilianweng.github.io/posts/2026-07-04-harness/">[3]</a></p>
+
+<h2>4 · Retrieval practice</h2>
 
 <div class="quiz">
 
@@ -92,23 +103,23 @@ Explain why a bigger window does not make a week-long agent, and name Anthropic�
 </div>
 
 <div class="q" data-ans="2">
-<p class="qtext">4. A coding session should end when…</p>
-<label><input type="radio" name="q4"> The agent has declared the entire product finished.</label>
-<label><input type="radio" name="q4"> The window is empty, to save on cached input tokens.</label>
-<label class="ans"><input type="radio" name="q4"> One item is verified, committed, and noted for the next shift.</label>
-<div class="feedback ok">Correct. Incremental progress. One-shotting and early victory are the named failure modes.</div>
-<div class="feedback no">Don't one-shot, don't empty the window for fun. Finish one verified item. Option 3.</div>
+<p class="qtext">4. Why not let the coding agent grade its own sprint?</p>
+<label><input type="radio" name="q4"> It has no tool channel, so it cannot see the diff it just wrote.</label>
+<label><input type="radio" name="q4"> Compaction already removes every bug before the next session.</label>
+<label class="ans"><input type="radio" name="q4"> Builders praise their own work. A separate evaluator should exercise the app.</label>
+<div class="feedback ok">Correct. Anthropic’s 2026 write-up: self-evaluation is confidently kind. A fresh evaluator with a browser is the check.</div>
+<div class="feedback no">It can see the diff, and compaction is not a test suite. Separate evaluator. Option 3.</div>
 </div>
 
 </div>
 
-<h2>4 · Read next (primary source)</h2>
+<h2>5 · Read next (primary source)</h2>
 
-<p><a href="https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents">Anthropic — Effective harnesses for long-running agents</a>. Read the initializer / coding-agent split and the artifact list.</p>
+<p><a href="https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents">Anthropic — Effective harnesses for long-running agents</a>, then <a href="https://www.anthropic.com/engineering/harness-design-long-running-apps">Harness design for long-running application development</a>. First post: initializer and artifacts. Second: anxiety, reset vs compaction, planner / generator / evaluator.</p>
 
-<h2>5 · Lock it in</h2>
+<h2>6 · Lock it in</h2>
 <ul>
-<li>Shift-change metaphor. Two agents. Six protocol steps. Recite.</li>
+<li>Shift-change metaphor. Initializer plus worker. Then the 2026 three: anxiety, reset versus compaction, a separate evaluator. Recite.</li>
 <li>New glossary terms: <em>harness</em> (deepen), <em>session</em>, <em>handoff artifact</em>, <em>initializer agent</em>.</li>
 <li>Phase 4 complete. Career lessons next — still theory, now pointed at a job.</li>
 </ul>

@@ -61,6 +61,8 @@ Quality degrades <em>before</em> you hit the hard token cap. As the window fills
 
 <p>Factor 10 is the production corollary: small, focused agents of maybe 3–20 steps, not 100-step monologues. As context grows, models lose the plot. Scope is a context strategy.<a class="cite" href="https://github.com/humanlayer/12-factor-agents/blob/main/content/factor-10-small-focused-agents.md">[3]</a></p>
 
+<p>Compaction is not the long-horizon store. Anthropic’s managed-agents write-up separates the session log from the window: the log is durable and outside the model; the window is whatever slice you pack for this call.<a class="cite" href="https://www.anthropic.com/engineering/managed-agents">[4]</a> A later session reads the log (or the files in 0017). It does not inherit a compacted transcript by magic.</p>
+
 <div class="interview">
 <span class="label">Interview angle</span>
 “How do you handle long-running agent conversations?” Weak: “use a 1M context model.” Strong: the model is stateless; the window is working memory; we append-only for cache; we compact or externalize before rot; we keep agents small so they never need the whole history.

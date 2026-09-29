@@ -32,6 +32,8 @@ Compute a back-of-envelope cost for a 10-step agent turn, and name the three clo
 
 <p>Your envelope, every design review: <em>expected steps × (avg input + avg output) × unit price</em>, plus a p95 because retries (Factor 9) and reflections add turns. If you cannot write that product, you do not have a cost model.</p>
 
+<p>A thinking budget is output. Reasoning models spend those tokens before the answer, and you pay the output rate for them.<a class="cite" href="https://lilianweng.github.io/posts/2025-05-01-thinking/">[2]</a> Turn the budget down on lookups. The harness changes the bill too: Anthropic’s managed-agents comparison put two ways of wrapping the same kind of work at about $9 and about $200.<a class="cite" href="https://www.anthropic.com/engineering/managed-agents">[3]</a> Quote the order of magnitude, then measure your own trace.</p>
+
 <h2>2 · Three clocks</h2>
 
 <table>

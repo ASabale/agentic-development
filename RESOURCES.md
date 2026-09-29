@@ -48,8 +48,10 @@ Verified September 2026. Annotated with when to reach for each.
   Direct vs indirect vs agent-specific. Use for: lesson 0027; untrusted observations.
 - [Paper: InjecAgent (IPI benchmark)](https://arxiv.org/abs/2403.02691)
   Tool-integrated agents following poisoned content. Use for: why IPI evals exist.
-- [Docs: MCP introduction + architecture](https://modelcontextprotocol.io/introduction)
+- [Docs: MCP introduction + architecture](https://modelcontextprotocol.io/docs/learn/architecture)
   Host/client/server; tools, resources, prompts. Use for: lesson 0028. MCP does not run the loop.
+- [Spec changelog: MCP 2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28/changelog)
+  Sessions and the initialize handshake removed; requests carry version in `_meta`. Use for: lesson 0028’s “stateless bus” claim.
 - [Docs: OpenTelemetry gen-AI spans](https://github.com/open-telemetry/semantic-conventions-genai/blob/main/docs/gen-ai/gen-ai-spans.md)
   `invoke_agent`, `execute_tool`, token attributes. Use for: lesson 0026 vocabulary.
 - [Docs: OpenAI Computer use](https://developers.openai.com/api/docs/guides/tools-computer-use)
@@ -80,6 +82,14 @@ Verified September 2026. Annotated with when to reach for each.
   State, nodes, edges, compile. Use for: lesson 0016 — runtime, not personality.
 - [Article: "Effective harnesses for long-running agents" — Anthropic](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)
   Initializer + coding agent; artifacts across sessions. Use for: lesson 0017.
+- [Article: "Harness design for long-running application development" — Anthropic](https://www.anthropic.com/engineering/harness-design-long-running-apps)
+  Context anxiety, reset versus compaction, planner/generator/evaluator. Use for: the 2026 half of lesson 0017.
+- [Post: "Why We Think" — Lilian Weng, 1 May 2025](https://lilianweng.github.io/posts/2025-05-01-thinking/)
+  Test-time compute after Wei et al. Use for: lesson 0006.
+- [Post: "Harness engineering" — Lilian Weng, 4 Jul 2026](https://lilianweng.github.io/posts/2026-07-04-harness/)
+  Survey-level companion to the Anthropic harness posts. Use for: lesson 0017.
+- [OWASP Top 10 for Agentic Applications (9 Dec 2025)](https://genai.owasp.org/2025/12/09/owasp-top-10-for-agentic-applications-the-benchmark-for-agentic-security-in-the-age-of-autonomous-ai/)
+  Injection is one row. Use for: lesson 0027’s “do not stop at the cheat sheet.”
 - [PDF: "A Practical Guide to Building Agents" — OpenAI](https://cdn.openai.com/business-guides-and-resources/a-practical-guide-to-building-agents.pdf)
   Guardrail layers, orchestration. Use for: lesson 0012.
 

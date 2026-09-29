@@ -55,7 +55,19 @@ The spec’s own note: MCP focuses on context exchange. It does not dictate how 
 “Would you use MCP?” Strong: as a standard ACI bus when several hosts must share tools; I still own the loop and the prompt; resources vs tools vs prompts is the useful taxonomy; I would not wrap every SQL as an MCP tool. Weak: “MCP is how you build agents now.”
 </div>
 
-<h2>3 · Retrieval practice</h2>
+<h2>3 · The 2026 spec dropped sessions</h2>
+
+<p>The introduction still describes host, client, and server. The spec a client actually speaks, revision <a href="https://modelcontextprotocol.io/specification/2026-07-28/changelog">2026-07-28</a>, removed the session layer:<a class="cite" href="https://modelcontextprotocol.io/specification/2026-07-28/changelog">[2]</a></p>
+<ul>
+<li><strong>No protocol session.</strong> <code>Mcp-Session-Id</code> and the <code>initialize</code> handshake are gone. Every request carries its protocol version and client capabilities in <code>_meta</code>. List results do not vary per connection.</li>
+<li><strong>State is an argument, not a connection.</strong> If a server needs memory across calls, it mints a handle and the client passes that handle as an ordinary tool argument.</li>
+<li><strong>Sampling is deprecated.</strong> New servers should not ask the host to run a model for them. Call the model provider from your harness (that is still your loop).</li>
+<li><strong>Stable tool lists.</strong> Servers should return <code>tools/list</code> in a deterministic order so the host can cache it and keep the model’s prompt cache warm (0025).</li>
+</ul>
+
+<p>Blog posts from 2024 that say “connect, initialize, hold a session” describe a revision this spec removed. The lesson from section 1 did not move: MCP still does not own your loop or your packed window.</p>
+
+<h2>4 · Retrieval practice</h2>
 
 <div class="quiz">
 
@@ -87,21 +99,21 @@ The spec’s own note: MCP focuses on context exchange. It does not dictate how 
 </div>
 
 <div class="q" data-ans="2">
-<p class="qtext">4. Why MCP does not retire Factor 2 and 8?</p>
-<label><input type="radio" name="q4"> MCP secretly authors your system prompt on the server.</label>
-<label><input type="radio" name="q4"> The spec requires you to delete local prompts after connect.</label>
-<label class="ans"><input type="radio" name="q4"> It exchanges context; it does not own the loop or the packed window.</label>
-<div class="feedback ok">Correct. Quoted from the architecture page. USB-C does not drive the car.</div>
-<div class="feedback no">It doesn't steal your prompt. It also doesn't run your while loop. Option 3.</div>
+<p class="qtext">4. Under the 2026-07-28 spec, cross-call server state lives…</p>
+<label><input type="radio" name="q4"> In the HTTP session created by the initialize handshake.</label>
+<label><input type="radio" name="q4"> Inside the model weights, because MCP replaced the harness.</label>
+<label class="ans"><input type="radio" name="q4"> In a server-minted handle the client passes back as a tool argument.</label>
+<div class="feedback ok">Correct. Sessions and initialize were removed. The protocol is stateless; memory is an explicit argument. The loop is still yours.</div>
+<div class="feedback no">No session id, and MCP is not the model. A handle in the tool call. Option 3.</div>
 </div>
 
 </div>
 
-<h2>4 · Read next (primary source)</h2>
+<h2>5 · Read next (primary source)</h2>
 
-<p><a href="https://modelcontextprotocol.io/introduction">MCP introduction</a>, then <a href="https://modelcontextprotocol.io/docs/learn/architecture">Architecture overview</a> — participants and primitives only. Skip SDK setup until you are building.</p>
+<p><a href="https://modelcontextprotocol.io/docs/learn/architecture">Architecture overview</a> for host, client, server, and the three primitives. Then the <a href="https://modelcontextprotocol.io/specification/2026-07-28/changelog">2026-07-28 changelog</a> major changes 1–2 (sessions removed, stateless requests). Skip SDK setup until you are building.</p>
 
-<h2>5 · Lock it in</h2>
+<h2>6 · Lock it in</h2>
 <ul>
 <li>Host / client / server. Tools / resources / prompts. “Does not run the loop.” Recite.</li>
 <li>New glossary terms: <em>MCP</em>, <em>MCP host</em>, <em>resource (MCP)</em>.</li>
