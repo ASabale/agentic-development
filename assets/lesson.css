@@ -290,6 +290,13 @@ tbody td:first-child { font-weight: 700; }
 .loop > :nth-child(7) { grid-area: 3 / 2; }
 .loop > :nth-child(8) { grid-area: 3 / 1; }
 
+/* A straight trace. The default .loop grid is the lesson 0002 cycle. */
+.loop.line {
+  grid-template-columns: minmax(0, 1fr) 2.2rem minmax(0, 1fr) 2.2rem minmax(0, 1fr);
+}
+.loop.line > :nth-child(n) { grid-area: auto; }
+.loop.line > .span { grid-column: 1 / -1; }
+
 .loop .box {
   background: var(--card);
   border: 1.5px solid var(--ink);
@@ -676,8 +683,9 @@ tbody td:first-child { font-weight: 700; }
   .split { grid-template-columns: 1fr; }
   .lesson-row { grid-template-columns: 2.6rem 1fr; }
   .lesson-row .meta { grid-column: 2; }
-  .loop { grid-template-columns: 1fr; max-width: none; }
+  .loop, .loop.line { grid-template-columns: 1fr; max-width: none; }
   .loop > :nth-child(n) { grid-area: auto; }
+  .loop.line > .span { grid-column: auto; }
   .loop .arrow { margin: 0.1rem 0; }
   .sim-entry { flex-direction: column; gap: 0.35rem; }
   .sim-role { flex: none; width: fit-content; }

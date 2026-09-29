@@ -1,5 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 168" role="img" aria-labelledby="t">
   <title id="t">Five beats of one tool-calling step</title>
+  <defs>
+    <marker id="a" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0 0 L6 3 L0 6" fill="none" stroke="#6e6758"/>
+    </marker>
+  </defs>
   <style>
     text { font-family: ui-sans-serif, system-ui, sans-serif; fill: #211f1a; }
     .n { font-size: 13px; font-weight: 700; }
@@ -25,11 +30,9 @@
     <text class="n" x="652" y="68" text-anchor="middle">5 · Model</text>
     <text class="s" x="652" y="88" text-anchor="middle">answer or again</text>
   </g>
-  <path d="M128 75h24M272 75h24M424 75h24M568 75h24" stroke="#6e6758" stroke-width="1.4" marker-end="url(#a)"/>
-  <defs>
-    <marker id="a" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-      <path d="M0 0 L6 3 L0 6" fill="none" stroke="#6e6758"/>
-    </marker>
-  </defs>
+  <path d="M128 75h24" fill="none" stroke="#6e6758" stroke-width="1.4" marker-end="url(#a)"/>
+  <path d="M272 75h24" fill="none" stroke="#6e6758" stroke-width="1.4" marker-end="url(#a)"/>
+  <path d="M424 75h24" fill="none" stroke="#6e6758" stroke-width="1.4" marker-end="url(#a)"/>
+  <path d="M568 75h24" fill="none" stroke="#6e6758" stroke-width="1.4" marker-end="url(#a)"/>
   <text class="s" x="360" y="148" text-anchor="middle">Same sequence OpenAI documents for function calling. The model never executes step 3.</text>
 </svg>
