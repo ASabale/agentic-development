@@ -38,6 +38,16 @@ Draw two boxes — <em>in-context</em> and <em>external</em> — and refuse to c
 Structured note-taking. The agent writes to persistent storage so it can track progress across tasks and sessions without keeping everything in active context. Reading those notes is a tool call.
 </div>
 
+<p>A notes file is memory. The next session does not replay yesterday’s whole transcript; it reads the note:</p>
+<pre><code>notes.md
+  Goal: migrate billing
+  Done: read the orders schema
+  Next: write the migration for order 1842
+  Exact id: order_id = "1842"   ← store ids verbatim
+
+Session 2 starts with: read_notes()
+not with the 40 tool dumps from session 1.</code></pre>
+
 <p>Anthropic’s memory tool is literally a filesystem under a directory, executed client-side: create, read, update, delete files that persist between sessions.<a class="cite" href="https://platform.claude.com/docs/en/agents-and-tools/tool-use/memory-tool">[3]</a> Claude Code’s “memory” is markdown files the harness re-injects. There is no magic neuron.</p>
 
 <h2>2 · Vectors are retrieval, not memory</h2>

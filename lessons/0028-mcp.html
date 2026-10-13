@@ -35,6 +35,15 @@ Draw host / client / server, name the three server primitives (tools, resources,
 The spec’s own note: MCP focuses on context exchange. It does not dictate how the application uses LLMs or manages the provided context. Your loop, your window, your HITL — still lessons 0002, 0004, 0012.
 </div>
 
+<p>MCP is the plug between your app and a tool server. It does not decide the next step:</p>
+<pre><code>Host (your app)
+  Client  -- tools/list -->  Server (orders)
+  Client  <-- [get_order, refund]
+  Your loop asks the model which tool to call.
+  Client  -- tools/call get_order {id: 1842} --> Server
+  Client  <-- {status: "paid"}
+You still append that result and call the model again.</code></pre>
+
 <h2>2 · Three primitives servers expose</h2>
 
 <table>

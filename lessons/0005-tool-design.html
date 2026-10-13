@@ -33,6 +33,17 @@ Treat a tool definition the way you would treat a public API: name, description,
 The contract between a non-deterministic model and deterministic code. The model never sees your implementation — only the schema and the observation. If the contract is sloppy, the model will call sloppily.
 </div>
 
+<p>The same capability, as the model sees it:</p>
+<pre><code>Bad — the model has to guess:
+  name: get_data
+  parameters: { id: string }
+
+Better — the contract says when and what:
+  name: get_order
+  description: Fetch one order by id. Do not use this to refund.
+  parameters:
+    order_id: string, required</code></pre>
+
 <h2>2 · Errors are observations</h2>
 
 <p>When a tool fails, do not swallow it. Return a compact, truthful observation: what failed, what the model can change next time. 12-factor Factor 9: compact the error into the window so the model can self-heal; cap retries so it cannot spin.<a class="cite" href="https://github.com/humanlayer/12-factor-agents/blob/main/content/factor-09-compact-errors.md">[3]</a></p>

@@ -29,6 +29,18 @@ Explain why a bigger window does not make a week-long agent, and name Anthropic�
 
 <p>Compaction (lesson 0004) is lossy summary <em>inside</em> a session. It does not replace a handoff <em>across</em> sessions. If the next call cannot <code>git log</code> and read a progress file, it will redo or undo the last shift.</p>
 
+<p>What the next shift should find, instead of a summary buried in yesterday’s chat:</p>
+<pre><code>feature_list.json
+  { "id": "refund-once", "status": "passing" }
+  { "id": "email-receipt", "status": "failing" }
+
+progress.md
+  Last green: refund-once. Next: email-receipt.
+  Do not restart the refund work.
+
+git log
+  "refund-once: gate amount &gt; 100"</code></pre>
+
 <h2>2 · Initializer + coding agent</h2>
 
 <p>Anthropic’s two-fold solution:<a class="cite" href="https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents">[1]</a></p>

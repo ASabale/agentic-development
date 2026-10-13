@@ -30,6 +30,13 @@ Run a seven-move script on any “design an agent” prompt. After this page, sp
 
 <p>Mission success criterion: “Can pass design interviews on agentic systems: whiteboarding an agent architecture, naming failure modes, defending trade-offs.” This lesson is that criterion as a script.</p>
 
+<p>The opening thirty seconds, on a prompt like “design a refund agent”:</p>
+<pre><code>"The job is: refund the right order, once, for a signed-in customer.
+ A human owns anything over $100.
+ The path is not fully enumerable — policy lookup, then a decision —
+ so this is an agent, not a fixed chain.
+ Tools: get_order (read), search_policy (read), refund (irreversible, pause)."</code></pre>
+
 <h2>2 · The seven moves</h2>
 
 <ol class="steps">

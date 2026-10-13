@@ -32,6 +32,17 @@ Draw two sequences: Human→Agent (inner) and Agent→Human (outer). Own the sec
 
 <p>Factor 11: trigger from anywhere, meet users where they are.<a class="cite" href="https://github.com/humanlayer/12-factor-agents">[2]</a> If your only interface is a chat box, you have a demo. Production tickets arrive as JSON.</p>
 
+<p>Who speaks first changes what you are allowed to keep in memory:</p>
+<pre><code>Inner:  user types "refund 1842"
+        process stays up, input() waits for "y"
+
+Outer:  Stripe webhook {event_id: "evt_9", order: "1842"}
+        save the thread
+        return 200
+        hours later, human approves
+        resume from the saved thread
+        same evt_9 again → do not refund twice</code></pre>
+
 <h2>2 · Why the harness changes</h2>
 
 <p>Inner loop can cheat: hold the transcript in RAM, <code>input()</code> for HITL, process stays up. Outer loop cannot:</p>

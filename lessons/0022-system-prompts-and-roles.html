@@ -38,6 +38,12 @@ The instructions, not shown in the UI, that start every conversation. Coding age
 <a class="cite" href="https://simonwillison.net/guides/agentic-engineering-patterns/how-coding-agents-work/">[1]</a>
 </div>
 
+<p>Same user sentence, three roles. Only the system line is yours to write once:</p>
+<pre><code>system: You are a billing clerk.
+        Never invent a refund window. Use search_policy.
+user:   Can I get a refund?
+tool:   "Annual plans: 14 days."   ← observation, not an instruction</code></pre>
+
 <h2>2 · Own the string</h2>
 
 <p>12-factor Factor 2: own your prompts.<a class="cite" href="https://github.com/humanlayer/12-factor-agents">[2]</a> If LangChain or an “agent SDK” concatenates a hidden preamble you cannot print, you cannot:</p>

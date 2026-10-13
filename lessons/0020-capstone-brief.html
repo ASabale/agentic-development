@@ -24,6 +24,14 @@ Leave with a scoped capstone you could defend in an interview: framework-free lo
 
 <p>And: build a non-trivial agent (tools + loop + memory) <em>without a framework</em>, then justify when a framework would be the right call.</p>
 
+<p>Small enough to finish. This shape already meets the brief:</p>
+<pre><code>harness.py          while loop: call model, run tool, append result
+tools.py            get_order, search_policy, refund
+notes.sqlite        goal, last step, exact order ids
+evals/tasks.json    10 cases, expected order status
+traces/run-014.json full transcript of one failure
+README.md           cost, one failure mode, why not multi-agent</code></pre>
+
 <p>Translate that into acceptance criteria you cannot weasel out of:</p>
 <ul>
 <li><strong>Harness you wrote.</strong> The five beats in your language of choice. No LangGraph, no Agents SDK loop until the write-up explains why you would add one.</li>

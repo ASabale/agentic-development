@@ -28,6 +28,13 @@ Explain, without mysticism, what happens in one API call: tokens in, a distribut
 The model reads the whole current token sequence, produces a probability distribution over the next token, a <strong>sampler</strong> picks one (greedy, temperature, top-p), that token is appended, and the process repeats until a stop token or a token cap. That is generation. Everything branded “chat” or “agent” is this loop plus your code.
 </div>
 
+<p>One step of that loop, not a paragraph of “understanding”:</p>
+<pre><code>Context so far: "The capital of France is"
+Distribution:   Paris 0.92, Lyon 0.02, …
+Sampler:        picks "Paris"
+Append it. Next pass starts from "…France is Paris"
+Stop when the stop token (or your token cap) arrives.</code></pre>
+
 <h2>2 · Chat is a costume on completion</h2>
 
 <p>Early models were raw completion engines. Chat models wrap the same engine in a <span class="strong">chat template</span>: reserved markers for <code>system</code>, <code>user</code>, <code>assistant</code>, and now tool-call blocks. Under the template it is still “complete this string.”<a class="cite" href="https://simonwillison.net/guides/agentic-engineering-patterns/how-coding-agents-work/">[1]</a></p>

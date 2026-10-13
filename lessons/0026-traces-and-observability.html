@@ -34,6 +34,14 @@ Name the span tree of one agent run (invoke → model call → execute_tool × N
 run_id, parent/child spans, model, prompt hash (not the full secret prompt in the UI if you can’t), tool name, call_id, latency, input/output/cached token counts, stop reason, error. Redact PII and secrets in args. Keep the full transcript in a store your on-call can open.
 </div>
 
+<p>One job, as a tree you can open when a refund looks wrong:</p>
+<pre><code>invoke_agent            run_id=014  4.2s
+  generate              in 1800 / out 40
+    execute_tool        get_order(1842)     120ms
+  generate              in 2100 / out 30
+    execute_tool        refund  PAUSED      hitl=pending
+  (no refund API call yet — the pause is a span, not a missing log line)</code></pre>
+
 <h2>2 · What traces are for</h2>
 
 <table>

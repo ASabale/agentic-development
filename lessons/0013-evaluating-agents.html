@@ -26,6 +26,16 @@ Define an agent eval the way Anthropic does, name three kinds of grader, and ref
 Give an AI an input (a <strong>task</strong>, often with an environment), run it, apply <strong>grading logic</strong> to its output — and, for agents, to the trajectory and the world it left behind. The post focuses on automated evals you can run in development, without live users.
 </div>
 
+<p>Grade the world the agent left, not how confident the reply sounded:</p>
+<pre><code>Task: "Refund order 1842 once."
+
+After the run, a code grader checks:
+  order 1842 status == refunded
+  refund tool was called exactly once
+  amount == the order total
+
+"The reply sounded helpful" is not a grader.</code></pre>
+
 <p>A <span class="strong">grader</span> scores some aspect of the run. One task can have several graders, each with several assertions. Three types, used in combination:</p>
 <table>
 <thead><tr><th>Grader</th><th>Example</th><th>Strength</th><th>Failure</th></tr></thead>

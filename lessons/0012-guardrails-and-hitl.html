@@ -56,6 +56,14 @@ Name a layered guardrail stack, and model human contact as a tool call that <em>
 An explicit control-flow state. Not a dashboard someone might glance at. High-risk intents pause; low-risk intents run; repeated failures escalate. The policy is code.
 </div>
 
+<p>The pause is a state in your code, not a hope that someone is watching a log:</p>
+<pre><code>Model emits: refund(order_id="1842", amount=400)
+
+Policy: amount &gt; 100 → pause
+Harness: asks a human, does not call the API yet
+Human: approve
+Harness: then runs refund, and feeds the result back</code></pre>
+
 <div class="interview">
 <span class="label">Interview angle</span>
 “How do you keep a refund agent safe?” Weak: “we’ll prompt it to be careful.” Strong: tool-risk ratings; refund is pause-and-approve; relevance/safety classifiers on the ticket and on tool observations (injection arrives through tools); output caps; a human tool; evals on a red-team set. Name the IBM slide if they push “full autonomy.”

@@ -28,6 +28,19 @@ Explain a cache hit as “the same rendered prefix, so the provider reuses KV st
 Put static content first (system, tool schemas, long instructions). Append new turns and observations at the end. Never rewrite history “to be tidy.” Tidiness is a cache miss — and a correctness bug besides (0004).
 </div>
 
+<p>The cache key is the exact prefix. Edit the head and you pay for it again:</p>
+<pre><code>Request 1
+  [system + tool schemas]     ← cached after this call
+  [user: refund 1842]
+
+Request 2 (same system bytes, new turn appended)
+  [system + tool schemas]     ← cache hit
+  [user: refund 1842]
+  [tool: paused]
+
+Request 2 if you "tidy" the system prompt
+  [system, one word changed]  ← whole prefix misses</code></pre>
+
 <p>Willison already flagged this as why coding agents are append-only.<a class="cite" href="https://simonwillison.net/guides/agentic-engineering-patterns/how-coding-agents-work/">[2]</a> OpenAI’s cookbook says the same: tools and their <em>order</em> must be identical to stay in the prefix; add new messages at the end.<a class="cite" href="https://developers.openai.com/cookbook/examples/prompt_caching101">[3]</a></p>
 
 <h2>2 · Numbers that change, mechanics that don’t</h2>

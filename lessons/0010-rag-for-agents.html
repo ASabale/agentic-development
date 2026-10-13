@@ -25,6 +25,15 @@ Define RAG in one sentence, name the chunking failure Anthropic actually measure
 <a class="cite" href="https://www.anthropic.com/engineering/contextual-retrieval">[1]</a>
 </div>
 
+<p>Without retrieval the model guesses a policy. With retrieval it answers from a passage you fetched:</p>
+<pre><code>User: "Can I refund an annual plan?"
+
+search("annual plan refund")
+→ "Annual plans can be refunded within 14 days of purchase."
+
+Answer: "Yes, within 14 days."   ← grounded in that passage
+Not: "Most companies allow 30 days."  ← fluent, ungrounded</code></pre>
+
 <p>Classic pipeline, still worth knowing cold:</p>
 <ol class="steps">
 <li>Chunk the corpus (pages, paragraphs, overlapping windows).</li>

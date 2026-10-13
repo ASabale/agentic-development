@@ -58,6 +58,14 @@ LLMs and tools orchestrated through <strong>predefined code paths</strong>. Your
 The LLM <strong>dynamically directs its own process</strong> and tool usage — your code maintains the loop, but the model chooses the path.
 </div>
 
+<p>What that loop looks like, for one small job:</p>
+<pre><code>Goal: "Should I pack a coat for Paris tomorrow?"
+
+Model:    get_weather(city="Paris")          ← it chose the tool
+Harness:  {"temp_c": 11, "rain": true}       ← your code ran it
+Model:    "11°C and raining. Pack a coat."    ← it decided to stop</code></pre>
+<p>A workflow for the same job would hard-code “always call weather, then always summarize.” An agent is allowed to skip the tool if the user already said the temperature, or to call a second tool if the first result is not enough.</p>
+
 <p>The test is one question: <strong>who is picking the next step — the programmer, or the model?</strong> A pipeline that runs summarize → translate → email in a fixed order is a workflow, even if every step uses an LLM. A bot that reads a support ticket, decides to look up the account, decides whether to issue a refund, and then drafts a reply is an agent, because the model chose those steps at runtime.</p>
 
 <p>This distinction is not pedantry — it is a cost/reliability trade-off. Anthropic's first advice: <em>find the simplest solution possible, and only increase complexity when it demonstrably helps.</em><a class="cite" href="https://www.anthropic.com/engineering/building-effective-agents">[3]</a> Agents trade your control flow for the model's flexibility, and you pay for it in latency, cost, and failure modes. Practitioners who have shipped agents emphasize that many problems people reach for an agent to solve were scripts all along.<a class="cite" href="https://github.com/humanlayer/12-factor-agents">[4]</a></p>

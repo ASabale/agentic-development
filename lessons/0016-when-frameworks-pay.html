@@ -46,6 +46,14 @@ Draw the buy-vs-build line: own the loop until you need durable execution, inter
 You need to <strong>pause between select and invoke</strong>, resume after a crash, branch on state, fan-out and join, or stream tokens to a UI — and you would rather not build a checkpointer. You still write the prompts. You still own the schemas.
 </div>
 
+<p>The seam a framework is for — stop between choosing a tool and running it, then resume after the process dies:</p>
+<pre><code>select: refund(order_id="1842")
+interrupt: wait for approval        ← checkpoint saved here
+--- process restarts ---
+resume: human approved
+invoke: refund API
+join: write the result into the thread</code></pre>
+
 <div class="split">
   <div>
     <h3>Stay with a loop</h3>

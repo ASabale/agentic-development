@@ -44,6 +44,13 @@ Separate three verbs interviewers mash together: <em>decompose</em> (plan the wo
 After a trial, convert the feedback signal (pass/fail, a unit test, a score) into a <strong>verbal self-critique</strong>. Store that text in an episodic memory buffer. On the next trial, the actor conditions on those critiques. No weight updates.
 </div>
 
+<p>What one reflection looks like. Nothing is fine-tuned; the critique is just text the next attempt can read:</p>
+<pre><code>Trial 1: sum([]) raised an error. Tests failed.
+Reflection (stored): "I assumed the list was non-empty.
+  Handle [] before dividing."
+Trial 2 prompt includes that sentence.
+Trial 2: returns 0 for an empty list. Tests pass.</code></pre>
+
 <p>The paper’s slogan: reinforce language agents through linguistic feedback. A failed HumanEval run plus the failing tests becomes a paragraph — “I mutated the input in place; next time copy first” — that the next attempt can read. Claimed result: 91% pass@1 on HumanEval, vs a GPT-4 baseline at 80%.<a class="cite" href="https://arxiv.org/abs/2303.11366">[3]</a></p>
 
 <p>Two caveats you must carry into an interview:</p>

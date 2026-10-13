@@ -26,6 +26,17 @@ Explain, in one breath, why an LLM is stateless, why conversations get more expe
 The finite sequence of tokens the model can attend to in one call: system prompt, user messages, tool definitions, prior tool calls, observations, retrieved docs. That sequence <em>is</em> the agent's working memory. If it is not in the window, the model does not know it.
 </div>
 
+<p>The model does not remember turn 1. The harness pastes it back in:</p>
+<pre><code>Turn 1, user: "My order is 1842."
+Turn 2, user: "Where is it?"
+
+What the model actually sees on turn 2:
+  system prompt
+  user: My order is 1842.
+  user: Where is it?
+
+Drop turn 1 and the model has no order number to look up.</code></pre>
+
 <p>Tokens, not words. Providers charge per token, and cap how many you can send. “the cat sat on the” is six integers, not five words.<a class="cite" href="https://simonwillison.net/guides/agentic-engineering-patterns/how-coding-agents-work/">[1]</a> You can see this at <a href="https://platform.openai.com/tokenizer">OpenAI’s tokenizer</a>.</p>
 
 <p>Because the harness resends the transcript, each extra turn is more expensive than the last: you pay for all previous tokens as <em>input</em> again. Cached prefixes (unchanged bytes at the start of the prompt) are billed cheaper, which is why serious harnesses <em>append-only</em> and never rewrite the prefix.<a class="cite" href="https://simonwillison.net/guides/agentic-engineering-patterns/how-coding-agents-work/">[1]</a></p>

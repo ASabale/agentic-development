@@ -28,6 +28,15 @@ State Anthropic’s Research result honestly: multi-agent beat single-agent by 9
 “The essence of search is compression.” Parallel workers buy you extra context capacity and reduce path dependence: one bad branch does not poison every other branch’s window.
 </div>
 
+<p>Two workers, two windows. The lead only reads the short returns:</p>
+<pre><code>Lead: "Compare Acme and Northwind pricing."
+
+Worker A window: only Acme pages  → "Acme: $20/mo"
+Worker B window: only Northwind   → "Northwind: $15/mo, annual only"
+
+Lead window: those two lines, not both raw crawls.
+One worker going off-topic does not fill the other's context.</code></pre>
+
 <p>On their internal research eval, Opus 4 lead + Sonnet 4 subagents beat single-agent Opus 4 by <strong>90.2%</strong>. On BrowseComp, three factors explained 95% of performance variance; <strong>token usage alone explained 80%</strong>, then tool-call count, then model choice.<a class="cite" href="https://www.anthropic.com/engineering/multi-agent-research-system">[1]</a> Read that twice. “Collaboration” is mostly “we spent more tokens, in parallel, in isolated windows.”</p>
 
 <p>Cost they published: agents ≈ 4× chat tokens; multi-agent ≈ 15× chat. The latest, more efficient models multiply whatever budget you already spend — upgrading the model beat doubling the budget on an older one, in their telling.</p>

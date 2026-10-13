@@ -58,6 +58,16 @@ Recite the twelve factors as a production checklist, and compress them into thre
 <strong>Own tokens. Own lifetime. Own failure.</strong> If a design violates one of those, it will hurt in production even if the demo was pretty.
 </div>
 
+<p>One thread, owned end to end. The model only emits the intent:</p>
+<pre><code>events = [
+  user: "refund 1842",
+  model: refund(order_id="1842", amount=400),
+  harness: paused_for_approval,          ← you own control flow
+  human: approved,
+  tool: {status: "refunded"},
+]
+next = reduce(events)   ← state lives outside the process</code></pre>
+
 <div class="interview">
 <span class="label">Interview angle</span>
 “Would you use LangChain?” Translate to 12-factor. If the framework lets you own prompts, context, and the pause-before-invoke seam, it may pay (lesson 0016). If it hides those, you are renting a demo. Horthy’s founders were rolling the stack themselves.

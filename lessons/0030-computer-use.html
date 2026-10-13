@@ -39,6 +39,13 @@ Computer use is an ACI: a way to ground actions in a GUI when no API exists. You
 <a class="cite" href="https://simonwillison.net/2025/Sep/18/agents/">[2]</a>
 </div>
 
+<p>Same five beats. The observation is a picture, and the action is a click:</p>
+<pre><code>Model: screenshot
+Harness: returns the pixels of the billing page
+Model: click(x=120, y=400)    ← "Refund" button, if that is what it saw
+Harness: performs the click inside the sandbox
+Model: screenshot again, then decides whether it worked</code></pre>
+
 <h2>2 · Why the blast radius jumps</h2>
 
 <ul>

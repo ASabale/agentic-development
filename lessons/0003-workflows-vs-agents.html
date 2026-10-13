@@ -19,6 +19,19 @@ Name Anthropic's five workflow patterns, and apply the one-question test — <em
 
 <h2>1 · The line, restated</h2>
 
+<p>Same ticket, two designs. Routing (a workflow) is an <code>if</code> you wrote. An agent is the model picking the tool.</p>
+<pre><code>Ticket: "I was charged twice for order 1842."
+
+Workflow (routing) — your code picks the branch:
+  classify(ticket) → "billing"
+  if billing: run refund_chain
+  if how_to:  run docs_chain
+
+Agent — the model picks the next tool:
+  search_policy("double charge")
+  → observation: refund within 14 days
+  refund(order_id="1842")   ← only if your harness allows it</code></pre>
+
 <p>Lesson 0001 gave you the test. Today you get the menu. Anthropic’s production taxonomy, from the post every interviewer has read:<a class="cite" href="https://www.anthropic.com/engineering/building-effective-agents">[1]</a></p>
 
 <div class="split">
